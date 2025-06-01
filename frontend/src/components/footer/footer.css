@@ -1,0 +1,147 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    overflow-x: hidden;
+    font-size: 18px;
+}
+
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.footer {
+    display: flex;
+    flex-direction: row;
+    background: #333;
+    color: #fff;
+    padding: 40px 0;
+    justify-content: center;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.footer-column {
+    flex: 1;
+    margin: 0 20px;
+   
+}
+
+.footer-column h4 {
+    color: #fff;
+    margin-bottom: 15px;
+}
+
+.footer-column p, .footer-column ul li {
+    color: #ccc;
+    margin-bottom: 10px;
+}
+
+.footer-column ul {
+    padding-left: 0;
+    list-style-type: none;
+}
+
+.footer-column ul li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 15px;
+}
+
+.footer-column ul li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #e67e22;
+    font-size: 1.2rem;
+}
+
+.footer-column a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+.footer-column a:hover {
+    color: #e67e22;
+    text-decoration: underline;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 20px;
+    color: #ccc;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-column input[type="email"] {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    width: 80%;
+    max-width: 300px;
+    margin-bottom: 10px;
+}
+
+.footer-column button {
+    padding: 10px 20px;
+    background-color: #e67e22;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.footer-column button:hover {
+    background-color: #d95d0e;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header-main .container {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .main-menu {
+        margin: 20px 0;
+    }
+
+    .main-menu ul {
+        flex-direction: column;
+    }
+
+    .main-menu li {
+        margin: 10px 0;
+    }
+
+    .dropdown {
+        position: static;
+        box-shadow: none;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .footer-column {
+        margin: 10px 0;
+    }
+}

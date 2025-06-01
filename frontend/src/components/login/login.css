@@ -1,0 +1,102 @@
+/* dangnhap.css */
+
+/* Định dạng cho section đăng nhập */
+.login-section {
+    display: flex; /* Sử dụng flexbox */
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    height: 80vh; /* Chiều cao toàn bộ màn hình */
+    background-color: #f8f9fa; /* Màu nền cho section */
+}
+
+/* Định dạng cho container đăng nhập */
+.login-container {
+    background-color: #fff; /* Nền trắng */
+    padding: 30px; /* Khoảng cách bên trong */
+    border-radius: 8px; /* Bo góc */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ */
+    text-align: center; /* Căn giữa nội dung */
+    width: 100%; /* Chiếm toàn bộ chiều rộng */
+    max-width: 400px; /* Chiều rộng tối đa */
+}
+
+/* Định dạng tiêu đề */
+h2 {
+    margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+    color: #e67e22; /* Màu tiêu đề */
+}
+
+/* Định dạng cho nhóm form */
+.form-group {
+    margin-bottom: 15px; /* Khoảng cách dưới mỗi nhóm */
+}
+
+/* Định dạng cho nhãn */
+label {
+    display: block; /* Hiển thị nhãn như một khối */
+    margin-bottom: 5px; /* Khoảng cách dưới nhãn */
+    color: #333; /* Màu chữ */
+}
+
+/* Định dạng cho input */
+input[type="email"],
+input[type="password"] {
+    width: 100%; /* Chiếm toàn bộ chiều rộng */
+    padding: 10px; /* Khoảng cách bên trong */
+    border: 1px solid #ccc; /* Đường viền xám */
+    border-radius: 5px; /* Bo góc */
+}
+
+/* Định dạng cho nút đăng nhập */
+.login-btn {
+    background-color: #e67e22; /* Màu nền nút */
+    color: white; /* Màu chữ */
+    border: none; /* Không có đường viền */
+    padding: 10px; /* Khoảng cách bên trong */
+    border-radius: 5px; /* Bo góc */
+    cursor: pointer; /* Con trỏ khi di chuột */
+    width: 100%; /* Chiếm toàn bộ chiều rộng */
+    transition: background-color 0.3s; /* Hiệu ứng chuyển màu */
+}
+
+/* Hiệu ứng khi di chuột qua nút */
+.login-btn:hover {
+    background-color: #d95d0e; /* Màu nền khi di chuột */
+}
+
+/* Định dạng cho liên kết */
+a {
+    color: #e67e22; /* Màu liên kết */
+    text-decoration: none; /* Không gạch chân */
+}
+
+a:hover {
+    text-decoration: underline; /* Gạch chân khi di chuột */
+}
+
+/* Định dạng cho các nút đăng nhập bằng mạng xã hội */
+.social-login {
+    display: flex; /* Sử dụng flexbox */
+    justify-content: space-between; /* Căn giữa các nút */
+    margin-top: 20px; /* Khoảng cách trên */
+}
+
+.social-login button {
+    flex: 1; /* Chiếm đều không gian */
+    margin: 0 5px; /* Khoảng cách giữa các nút */
+    padding: 10px; /* Khoảng cách bên trong */
+    border: none; /* Không có đường viền */
+    border-radius: 5px; /* Bo góc */
+    cursor: pointer; /* Con trỏ khi di chuột */
+}
+
+/* Màu nền cho các nút mạng xã hội */
+.social-login .facebook {
+    background-color: #3b5998; /* Màu Facebook */
+    color: white; /* Màu chữ */
+}
+
+.social-login .google {
+    background-color: #db4437; /* Màu Google */
+    color: white; /* Màu chữ */
+}

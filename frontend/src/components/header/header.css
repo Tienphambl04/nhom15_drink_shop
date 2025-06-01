@@ -1,0 +1,249 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    overflow-x: hidden;
+    font-size: 18px;
+}
+.search-bar {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    margin: 0 24px;
+}
+
+/* Phần ô tìm kiếm */
+.search-box {
+    display: flex;
+    align-items: center;
+    background: #f2f2f2;
+    border-radius: 28px;
+    padding: 10px 20px;
+    flex: 1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* Phần đăng nhập */
+.auth-box {
+    background: #fff3ec;
+    border-radius: 28px;
+    padding: 10px 20px;
+    margin-left: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* Header Styles */
+.header {
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding-bottom: 10px;
+}
+
+.header-top {
+    background: #f8f9fa;
+    padding: 18px 0 10px 0;
+    font-size: 20px;
+    color: #e74c3c;
+    font-weight: bold;
+    border-bottom: 1px dashed #ddd;
+}
+
+.header-top .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+}
+
+.hotline {
+    display: flex;
+    align-items: center;
+    font-size: 1.3rem;
+    color: #e74c3c;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.user-actions a {
+    color: #333;
+    text-decoration: none;
+    margin-left: 15px;
+}
+
+.user-actions a:hover {
+    color: #e74c3c;
+}
+
+.header-main {
+    padding: 32px 0 18px 0;
+}
+
+.header-main .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+}
+
+.logo img {
+    max-height: 80px;
+    width: 80px;
+    margin-right: 18px;
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 0.8;
+}
+.logo-title {
+    font-size: 2.6rem;
+    font-weight: bold;
+    color: #222;
+    font-family: 'Montserrat', Arial, sans-serif;
+    letter-spacing: 2px;
+    margin-bottom: 0;
+}
+.logo-subtitle {
+    font-size: 1.3rem;
+    color: #e67e22;
+    letter-spacing: 4px;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-weight: 600;
+    margin-top: -2px;
+}
+
+.main-menu ul {
+    display: flex;
+    list-style: none;
+    gap: 36px;
+}
+
+.main-menu li {
+    position: relative;
+    margin: 0 0px;
+}
+
+.main-menu a {
+    color: #222;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.25rem;
+    padding: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+}
+
+.main-menu a:hover {
+    color: #e67e22;
+}
+
+.dropdown {
+    display: none;
+    position: absolute;
+    background: #fff;
+    min-width: 200px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 100;
+}
+
+.has-dropdown .dropdown {
+    display: none;
+}
+
+.has-dropdown.open .dropdown {
+    display: block;
+}
+
+.dropdown li {
+    margin: 0;
+}
+
+.dropdown a {
+    padding: 10px 15px;
+}
+
+.cart {
+    display: flex;
+    align-items: center;
+    font-family: Arial, sans-serif;
+}
+
+.cart a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #222;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.cart-icon-wrap {
+    position: relative;
+    display: inline-block;
+    margin-right: 18px;
+}
+
+.cart-bag-icon {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+}
+
+.cart-count {
+    position: absolute;
+    top: -12px;
+    left: 36px;
+    background: #000;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    box-sizing: border-box;
+    z-index: 2;
+}
+
+.cart-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.cart-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #222;
+}
+
+.cart-desc {
+    font-size: 1.1rem;
+    color: #222;
+    margin-top: -28px;
+}
+
