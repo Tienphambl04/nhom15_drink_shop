@@ -1,8 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
+import { NavLink } from "react-router-dom";
 import "./header.css";
 
-
 const Header = () => {
+  const [isDropdown, setIsDropdown] = useState(false);
+  const token = localStorage.getItem('token');
+  const tenDangNhap = localStorage.getItem('ten_dang_nhap') || 'User';
+  const vaiTro = localStorage.getItem('vai_tro');
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('ten_dang_nhap');
+    localStorage.removeItem('vai_tro');
+    window.location.href = '/';
+  };
+
   return (
     <header className="header">
       <div className="header-top">
@@ -19,10 +31,31 @@ const Header = () => {
               </button>
             </div>
             <div className="auth-box">
-              <span className="search-auth">
-                <a href="/login" className="login-link">Đăng nhập</a>&nbsp; &amp; &nbsp;
-                <a href="/register" className="register-link">Đăng ký</a>
-              </span>
+              {token ? (
+                <div className="user-menu">
+                  <span
+                    className="user-name"
+                    onClick={() => setIsDropdown(!isDropdown)}
+                  >
+                    {tenDangNhap} <i className="fas fa-chevron-down dropdown-icon"></i>
+                  </span>
+                  {isDropdown && (
+                    <ul className="dropdown-menu">
+                      {vaiTro === 'admin' && (
+                        <li><a href="/admin/dashboard">Quản trị</a></li>
+                      )}
+                      <li><a href="/profile">Thông tin cá nhân</a></li>
+                      <li><a href="/change-password">Đổi mật khẩu</a></li>
+                      <li><a href="#" onClick={handleLogout}>Đăng xuất</a></li>
+                    </ul>
+                  )}
+                </div>
+              ) : (
+                <span className="search-auth">
+                  <a href="/login" className="login-link">Đăng nhập</a>
+                  <a href="/register" className="register-link">Đăng ký</a>
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -42,20 +75,30 @@ const Header = () => {
 
           <nav className="main-menu">
             <ul>
-              <li><a href="/"><i className="fas fa-home"></i> Trang chủ</a></li>
+              <li>
+                <NavLink to={vaiTro === 'admin' ? '/admin/dashboard' : '/'} activeClassName="active">
+                  <i className="fas fa-home"></i> Trang chủ
+                </NavLink>
+              </li>
               <li className="has-dropdown">
                 <a href="#">
                   <i className="fas fa-birthday-cake"></i> Sản phẩm
-                  <i className="fas fa-chevron-down" style={{ fontSize: "12px" }}></i>
+                  <i className="fas fa-chevron-down dropdown-icon"></i>
                 </a>
-                <ul className="dropdown">
-                  <li><a href="#">Món ăn nổi bật <i className="fas fa-star" style={{ color: "#e67e22" }}></i></a></li>
-                  <li><a href="#">Món ăn ưa chuộng <i className="fas fa-fire" style={{ color: "#e74c3c" }}></i></a></li>
-                  <li><a href="#"><i className="fas fa-utensils"></i> Món Ăn Mới</a></li>
+                <ul className="nav-dropdown">
+                  <li>
+                    <a href="#">Món ăn nổi bật <i className="fas fa-star" style={{ color: "#e67e22" }}></i></a>
+                  </li>
+                  <li>
+                    <a href="#">Món ăn ưa chuộng <i className="fas fa-fire" style={{ color: "#e74c3c" }}></i></a>
+                  </li>
+                  <li>
+                    <a href="#">Món Ăn Mới <i className="fas fa-utensils"></i></a>
+                  </li>
                 </ul>
               </li>
               <li><a href="/about"><i className="fas fa-info-circle"></i> Giới thiệu</a></li>
-              <li><a href="/blog"><i className="fas fa-external-link-alt"></i> Blog</a></li>
+              <li><a href="/blog"><i className="fas fa-blog"></i> Blog</a></li>
               <li><a href="/contact"><i className="fas fa-phone"></i> Liên hệ</a></li>
             </ul>
           </nav>
@@ -63,7 +106,7 @@ const Header = () => {
           <div className="cart">
             <a href="/cart">
               <span className="cart-icon-wrap">
-                <img src="img/anh2.png" alt="Cart" className="cart-bag-icon" />
+                <img src="img/anh2.png" alt="Cart" className="cart-logo-icon" />
                 <span className="cart-count">0</span>
               </span>
               <span className="cart-info">

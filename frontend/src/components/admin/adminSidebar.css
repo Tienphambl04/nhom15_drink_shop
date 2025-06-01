@@ -1,0 +1,86 @@
+/* Cố định sidebar, bên trái ngay dưới header cao 80px */
+.admin-sidebar {
+  position: sticky;
+  top: 180px; /* sẽ dính vào vị trí này khi cuộn tới */
+  width: 250px;
+  height: fit-content; /* hoặc chiều cao phù hợp */
+  background-color: #f7f7f7;
+  border-right: 1px solid #ddd;
+  padding: 1rem;
+  box-sizing: border-box;
+  color: #333;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow-y: auto;
+}
+
+
+
+.admin-sidebar h2 {
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+  color: #222;
+}
+
+.admin-sidebar ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.admin-sidebar > ul > li {
+  margin-bottom: 1rem;
+  user-select: none;
+}
+
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.4rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  color: #444;
+}
+
+.menu-header:hover {
+  background-color: #e0e0e0;
+}
+
+.toggle-icon {
+  font-weight: 700;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.submenu {
+  margin-top: 0.4rem;
+  margin-left: 1rem;
+}
+
+.submenu li {
+  margin-bottom: 0.4rem;
+}
+
+.admin-sidebar a {
+  color: #555;
+  text-decoration: none;
+  font-weight: 500;
+  display: block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.admin-sidebar a:hover {
+  background-color: #cce5ff;
+  color: #0056b3;
+}
+
+.admin-sidebar a.active {
+  background-color: #007bff;
+  color: white;
+  font-weight: 700;
+}

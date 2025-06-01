@@ -1,22 +1,29 @@
 import React, { useState } from 'react';
-import { loginUser } from '../../api/auth';  // Đường dẫn đúng với project của bạn
+import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../../api/auth';
 import './login.css';
 
 function Login() {
   const [tenDangNhap, setTenDangNhap] = useState('');
   const [matKhau, setMatKhau] = useState('');
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const result = await loginUser({ ten_dang_nhap: tenDangNhap, mat_khau: matKhau });
 
-    if (result.token) {
+    if (result.success) {
       alert('Đăng nhập thành công!');
-      // Ví dụ lưu token vào localStorage
       localStorage.setItem('token', result.token);
+      localStorage.setItem('ten_dang_nhap', tenDangNhap);
+      localStorage.setItem('vai_tro', result.user.vai_tro);
       setMessage('');
-      // Có thể redirect hoặc cập nhật trạng thái đăng nhập ở đây
+      if (result.user.vai_tro === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/');
+      }
     } else {
       setMessage(result.message || 'Sai tên đăng nhập hoặc mật khẩu!');
     }
@@ -52,7 +59,7 @@ function Login() {
           </div>
           <button type="submit" className="login-btn">Đăng nhập</button>
         </form>
-        {message && <p style={{color: 'red'}}>{message}</p>}
+        {message && <p style={{ color: 'red' }}>{message}</p>}
         <p>
           Bạn chưa có tài khoản? <a href="/register">Đăng ký tại đây</a>
         </p>

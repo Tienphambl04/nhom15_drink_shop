@@ -13,65 +13,71 @@ function Register() {
     mat_khau_xac_nhan: '',
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleChange = e => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const validateEmail = (email) => {
-    return /^\S+@\S+\.\S+$/.test(email);
+  const validateForm = () => {
+    if (formData.mat_khau !== formData.mat_khau_xac_nhan) {
+      alert('Mật khẩu xác nhận không khớp.');
+      return false;
+    }
+    if (!/^(0[3|5|7|8|9])+([0-9]{8})$/.test(formData.so_dien_thoai)) {
+      alert('Số điện thoại không hợp lệ.');
+      return false;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      alert('Email không hợp lệ.');
+      return false;
+    }
+    return true;
   };
 
-  const validatePhone = (phone) => {
-    return /^\d{10}$/.test(phone);
+  const resetForm = () => {
+    setFormData({
+      ho_ten: '',
+      ten_dang_nhap: '',
+      so_dien_thoai: '',
+      email: '',
+      dia_chi: '',
+      mat_khau: '',
+      mat_khau_xac_nhan: '',
+    });
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
-
-    if (formData.mat_khau !== formData.mat_khau_xac_nhan) {
-      alert('Mật khẩu xác nhận không khớp.');
-      return;
-    }
-
-    if (!validatePhone(formData.so_dien_thoai)) {
-      alert('Số điện thoại phải đúng 10 số.');
-      return;
-    }
-
-    if (!validateEmail(formData.email)) {
-      alert('Email không hợp lệ.');
-      return;
-    }
+    
+    if (!validateForm()) return;
+    
+    setIsLoading(true);
 
     const payload = {
-      ho_ten: formData.ho_ten,
-      ten_dang_nhap: formData.ten_dang_nhap,
-      so_dien_thoai: formData.so_dien_thoai,
-      email: formData.email,
-      dia_chi: formData.dia_chi,
+      ho_ten: formData.ho_ten.trim(),
+      ten_dang_nhap: formData.ten_dang_nhap.trim(),
+      so_dien_thoai: formData.so_dien_thoai.trim(),
+      email: formData.email.trim(),
+      dia_chi: formData.dia_chi.trim(),
       mat_khau: formData.mat_khau,
     };
 
     try {
       const result = await registerUser(payload);
-
-      if (result.success) {
-        alert('Đăng ký thành công! Bạn có thể đăng nhập ngay.');
-        setFormData({
-          ho_ten: '',
-          ten_dang_nhap: '',
-          so_dien_thoai: '',
-          email: '',
-          dia_chi: '',
-          mat_khau: '',
-          mat_khau_xac_nhan: '',
-        });
+      
+      // Kiểm tra thành công - đa dạng các trường hợp
+      if (result?.success || result?.status === 'success' || result?.code === 200 || !result?.error) {
+        alert('Đăng ký thành công!');
+        resetForm();
       } else {
-        alert(result.message || 'Đăng ký thất bại.');
+        alert(result?.message || 'Đăng ký thất bại.');
       }
     } catch (error) {
       console.error(error);
       alert('Có lỗi xảy ra trong quá trình đăng ký.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -89,6 +95,7 @@ function Register() {
               placeholder="Họ và tên"
               value={formData.ho_ten}
               onChange={handleChange}
+              disabled={isLoading}
               required
             />
           </div>
@@ -102,6 +109,7 @@ function Register() {
               placeholder="Tên đăng nhập"
               value={formData.ten_dang_nhap}
               onChange={handleChange}
+              disabled={isLoading}
               required
             />
           </div>
@@ -115,6 +123,7 @@ function Register() {
               placeholder="Số điện thoại"
               value={formData.so_dien_thoai}
               onChange={handleChange}
+              disabled={isLoading}
               required
             />
           </div>
@@ -128,6 +137,7 @@ function Register() {
               placeholder="Email"
               value={formData.email}
               onChange={handleChange}
+              disabled={isLoading}
               required
             />
           </div>
@@ -141,6 +151,7 @@ function Register() {
               placeholder="Địa chỉ"
               value={formData.dia_chi}
               onChange={handleChange}
+              disabled={isLoading}
             />
           </div>
 
@@ -153,6 +164,7 @@ function Register() {
               placeholder="Mật khẩu"
               value={formData.mat_khau}
               onChange={handleChange}
+              disabled={isLoading}
               required
             />
           </div>
@@ -166,11 +178,14 @@ function Register() {
               placeholder="Xác nhận mật khẩu"
               value={formData.mat_khau_xac_nhan}
               onChange={handleChange}
+              disabled={isLoading}
               required
             />
           </div>
 
-          <button type="submit" className="login-btn">Đăng ký</button>
+          <button type="submit" className="login-btn" disabled={isLoading}>
+            {isLoading ? 'Đang đăng ký...' : 'Đăng ký'}
+          </button>
         </form>
 
         <p>

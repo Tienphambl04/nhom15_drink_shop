@@ -2,6 +2,8 @@
 
 /* Định dạng cho section đăng ký */
 .register-section {
+    margin-top: 150px;
+    margin-bottom: 100px;
     display: flex; /* Sử dụng flexbox */
     justify-content: center; /* Căn giữa theo chiều ngang */
     align-items: center; /* Căn giữa theo chiều dọc */

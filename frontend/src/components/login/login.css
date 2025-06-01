@@ -100,3 +100,44 @@ a:hover {
     background-color: #db4437; /* Màu Google */
     color: white; /* Màu chữ */
 }
+.user-menu {
+  position: relative;
+  cursor: pointer;
+}
+
+.user-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #333;
+  font-weight: 500;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  z-index: 1000;
+  min-width: 150px;
+  list-style: none;
+  padding: 0;
+  margin: 5px 0 0 0;
+}
+
+.dropdown-menu li {
+  padding: 10px;
+}
+
+.dropdown-menu li a {
+  text-decoration: none;
+  color: #333;
+  display: block;
+}
+
+.dropdown-menu li a:hover {
+  background: #f0f0f0;
+}
