@@ -11,14 +11,20 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
     const result = await loginUser({ ten_dang_nhap: tenDangNhap, mat_khau: matKhau });
 
     if (result.success) {
+      if (result.user.trang_thai === 'bi_khoa') {
+        setMessage('Tài khoản của bạn đang bị khóa, không thể đăng nhập.');
+        return;
+      }
+
       alert('Đăng nhập thành công!');
       localStorage.setItem('token', result.token);
       localStorage.setItem('ten_dang_nhap', tenDangNhap);
       localStorage.setItem('vai_tro', result.user.vai_tro);
-      setMessage('');
+
       if (result.user.vai_tro === 'admin') {
         navigate('/admin/dashboard');
       } else {

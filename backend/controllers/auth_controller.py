@@ -29,8 +29,13 @@ def dang_ky():
 def dang_nhap():
     data = request.get_json()
     user = NguoiDung.query.filter_by(ten_dang_nhap=data['ten_dang_nhap']).first()
+
     if not user or not check_password_hash(user.mat_khau, data['mat_khau']):
         return jsonify({"message": "Sai tên đăng nhập hoặc mật khẩu", "success": False}), 401
+
+    # Kiểm tra trạng thái tài khoản
+    if getattr(user, 'trang_thai', None) == 'bi_khoa':
+        return jsonify({"message": "Tài khoản của bạn đang bị khóa, không thể đăng nhập.", "success": False}), 403
 
     token = jwt.encode({
         'ma_nguoi_dung': user.ma_nguoi_dung,
@@ -43,9 +48,11 @@ def dang_nhap():
         "token": token,
         "user": {
             "ho_ten": user.ho_ten,
-            "vai_tro": user.vai_tro
+            "vai_tro": user.vai_tro,
+            "trang_thai": user.trang_thai  # gửi trạng thái về frontend để xử lý nếu cần
         }
     }), 200
+
 
 def cap_nhat_thong_tin(current_user):
     data = request.get_json()

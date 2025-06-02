@@ -19,12 +19,13 @@ function UserList() {
   }, [token]);
 
   const handleResetPassword = async (userId) => {
-    const newPassword = prompt('Nhập mật khẩu mới:');
-    if (!newPassword) return;
+  const confirmReset = window.confirm('Bạn có chắc muốn reset mật khẩu về mặc định là "123456" không?');
+  if (!confirmReset) return;
 
-    const res = await resetUserPassword(userId, { mat_khau_moi: newPassword }, token);
-    alert(res.message || (res.success ? 'Đổi mật khẩu thành công' : 'Đổi mật khẩu thất bại'));
-  };
+  const res = await resetUserPassword(userId, {}, token); 
+  alert(res.message || (res.success ? 'Đổi mật khẩu thành công' : 'Đổi mật khẩu thất bại'));
+};
+
 
   const handleToggleStatus = async (userId) => {
     const res = await toggleUserStatus(userId, token);
