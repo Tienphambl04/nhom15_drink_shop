@@ -7,6 +7,8 @@ import ChangePassword from './components/header/changePassword';
 import Profile from './components/header/profile';
 import AdminDashboard from './pages/adminDashboard';
 import AdminRoutes from './adminRoutes';
+import HienThiDoUongTheoDanhMuc from './components/danh_muc/danhMuc_khach';
+
 
 function App() {
   return (
@@ -47,6 +49,15 @@ function App() {
             </MainLayout>
             }
         />
+        <Route
+          path="/danh-muc/:ma_danh_muc"
+          element={
+            <MainLayout>
+              <HienThiDoUongTheoDanhMuc />
+            </MainLayout>
+          }
+        />
+
         <Route
           path="/admin/dashboard" element={
             <MainLayout>

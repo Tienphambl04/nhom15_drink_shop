@@ -1,18 +1,59 @@
-import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { fetchDanhSachDanhMuc } from "../../api/danh_muc";
 import "./header.css";
 
 const Header = () => {
   const [isDropdown, setIsDropdown] = useState(false);
-  const token = localStorage.getItem('token');
-  const tenDangNhap = localStorage.getItem('ten_dang_nhap') || 'User';
-  const vaiTro = localStorage.getItem('vai_tro');
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const token = localStorage.getItem("token");
+  const tenDangNhap = localStorage.getItem("ten_dang_nhap") || "User";
+  const vaiTro = localStorage.getItem("vai_tro") || "";
+
+  const navigate = useNavigate();
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchDanhSachDanhMuc();
+        if (data && data.success && Array.isArray(data.data)) {
+          setCategories(data.data);
+          setError(null);
+        } else {
+          setError("Dữ liệu danh mục không đúng định dạng");
+          setCategories([]);
+        }
+      } catch (err) {
+        setError("Lấy danh mục thất bại");
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadCategories();
+  }, []);
+
+  // Đóng dropdown khi click ra ngoài
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('ten_dang_nhap');
-    localStorage.removeItem('vai_tro');
-    window.location.href = '/';
+    localStorage.removeItem("token");
+    localStorage.removeItem("ten_dang_nhap");
+    localStorage.removeItem("vai_tro");
+    navigate("/");
   };
 
   return (
@@ -32,28 +73,56 @@ const Header = () => {
             </div>
             <div className="auth-box">
               {token ? (
-                <div className="user-menu">
+                <div className="user-menu" ref={dropdownRef}>
                   <span
                     className="user-name"
                     onClick={() => setIsDropdown(!isDropdown)}
+                    style={{ cursor: "pointer" }}
                   >
-                    {tenDangNhap} <i className="fas fa-chevron-down dropdown-icon"></i>
+                    {tenDangNhap}{" "}
+                    <i className="fas fa-chevron-down dropdown-icon"></i>
                   </span>
                   {isDropdown && (
                     <ul className="dropdown-menu">
-                      {vaiTro === 'admin' && (
-                        <li><a href="/admin/dashboard">Quản trị</a></li>
+                      {vaiTro === "admin" && (
+                        <li>
+                          <NavLink to="/admin/dashboard">Quản trị</NavLink>
+                        </li>
                       )}
-                      <li><a href="/profile">Thông tin cá nhân</a></li>
-                      <li><a href="/change-password">Đổi mật khẩu</a></li>
-                      <li><a href="#" onClick={handleLogout}>Đăng xuất</a></li>
+                      <li>
+                        <NavLink to="/profile">Thông tin cá nhân</NavLink>
+                      </li>
+                      <li>
+                        <NavLink to="/change-password">Đổi mật khẩu</NavLink>
+                      </li>
+                      <li>
+                        <button
+                          onClick={handleLogout}
+                          style={{
+                            border: "none",
+                            background: "none",
+                            cursor: "pointer",
+                            padding: 0,
+                            margin: 0,
+                            color: "inherit",
+                            width: "100%",
+                            textAlign: "left",
+                          }}
+                        >
+                          Đăng xuất
+                        </button>
+                      </li>
                     </ul>
                   )}
                 </div>
               ) : (
                 <span className="search-auth">
-                  <a href="/login" className="login-link">Đăng nhập</a>
-                  <a href="/register" className="register-link">Đăng ký</a>
+                  <NavLink to="/login" className="login-link">
+                    Đăng nhập
+                  </NavLink>
+                  <NavLink to="/register" className="register-link">
+                    Đăng ký
+                  </NavLink>
                 </span>
               )}
             </div>
@@ -64,56 +133,79 @@ const Header = () => {
       <div className="header-main">
         <div className="container">
           <div className="logo">
-            <a href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+            <NavLink
+              to="/"
+              style={{ display: "flex", alignItems: "center", textDecoration: "none" }}
+            >
               <img src="img/anh1.jpg" alt="Drinkhub Logo" className="logo-img" />
               <div className="logo-text">
-                <span className="logo-title">DRINKHUB</span><br />
+                <span className="logo-title">DRINKHUB</span>
+                <br />
                 <span className="logo-subtitle">CAKE & DRINK</span>
               </div>
-            </a>
+            </NavLink>
           </div>
 
           <nav className="main-menu">
             <ul>
               <li>
-                <NavLink to={vaiTro === 'admin' ? '/admin/dashboard' : '/'} activeClassName="active">
+                <NavLink
+                  to={vaiTro === "admin" ? "/admin/dashboard" : "/"}
+                  className={({ isActive }) => (isActive ? "active" : "")}
+                >
                   <i className="fas fa-home"></i> Trang chủ
                 </NavLink>
               </li>
               <li className="has-dropdown">
-                <a href="#">
-                  <i className="fas fa-birthday-cake"></i> Sản phẩm
+                <span>
+                  <i className="fas fa-birthday-cake"></i> Sản phẩm{" "}
                   <i className="fas fa-chevron-down dropdown-icon"></i>
-                </a>
+                </span>
                 <ul className="nav-dropdown">
-                  <li>
-                    <a href="#">Món ăn nổi bật <i className="fas fa-star" style={{ color: "#e67e22" }}></i></a>
-                  </li>
-                  <li>
-                    <a href="#">Món ăn ưa chuộng <i className="fas fa-fire" style={{ color: "#e74c3c" }}></i></a>
-                  </li>
-                  <li>
-                    <a href="#">Món Ăn Mới <i className="fas fa-utensils"></i></a>
-                  </li>
+                  {loading && <li>Đang tải danh mục...</li>}
+                  {error && <li style={{ color: "red" }}>{error}</li>}
+                  {!loading && !error && categories.length === 0 && <li>Chưa có danh mục</li>}
+                  {!loading &&
+                    !error &&
+                    categories.map((cat) => (
+                      <li key={cat.ma_danh_muc}>
+                        <NavLink to={`/danh-muc/${cat.ma_danh_muc}`}>
+                          {cat.ten_danh_muc}
+                        </NavLink>
+                      </li>
+                    ))}
                 </ul>
               </li>
-              <li><a href="/about"><i className="fas fa-info-circle"></i> Giới thiệu</a></li>
-              <li><a href="/blog"><i className="fas fa-blog"></i> Blog</a></li>
-              <li><a href="/contact"><i className="fas fa-phone"></i> Liên hệ</a></li>
+              <li>
+                <NavLink to="/about" className={({ isActive }) => (isActive ? "active" : "")}>
+                  <i className="fas fa-info-circle"></i> Giới thiệu
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/blog" className={({ isActive }) => (isActive ? "active" : "")}>
+                  <i className="fas fa-blog"></i> Blog
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/contact" className={({ isActive }) => (isActive ? "active" : "")}>
+                  <i className="fas fa-phone"></i> Liên hệ
+                </NavLink>
+              </li>
             </ul>
           </nav>
 
           <div className="cart">
-            <a href="/cart">
+            <NavLink to="/cart">
               <span className="cart-icon-wrap">
                 <img src="img/anh2.png" alt="Cart" className="cart-logo-icon" />
                 <span className="cart-count">0</span>
               </span>
               <span className="cart-info">
-                <span className="cart-title">GIỎ HÀNG</span><br />
+                <span className="cart-title">GIỎ HÀNG</span>
+                <br />
                 <span className="cart-desc">(0) sản phẩm</span>
               </span>
-            </a>
+            </NavLink>
           </div>
         </div>
       </div>

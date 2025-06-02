@@ -1,0 +1,49 @@
+// src/api/doUong.js
+
+const API_BASE = 'http://localhost:5000/api/do-uong'; 
+
+// Lấy danh sách đồ uống theo danh mục
+export async function getDoUongTheoDanhMuc(maDanhMuc) {
+  const res = await fetch(`${API_BASE}/danh-muc/${maDanhMuc}`);
+  if (!res.ok) throw new Error('Lấy đồ uống thất bại');
+  const data = await res.json();
+  return data.data; // mảng đồ uống
+}
+
+// Thêm đồ uống mới (formData chứa dữ liệu + file ảnh)
+export async function themDoUong(formData) {
+  const res = await fetch(API_BASE, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || 'Thêm đồ uống thất bại');
+  }
+  return await res.json();
+}
+
+// Sửa đồ uống (formData chứa dữ liệu cập nhật + file ảnh nếu có)
+export async function suaDoUong(maDoUong, formData) {
+  const res = await fetch(`${API_BASE}/${maDoUong}`, {
+    method: 'PUT',
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || 'Cập nhật đồ uống thất bại');
+  }
+  return await res.json();
+}
+
+// Xóa đồ uống theo mã
+export async function xoaDoUong(maDoUong) {
+  const res = await fetch(`${API_BASE}/${maDoUong}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || 'Xóa đồ uống thất bại');
+  }
+  return await res.json();
+} 

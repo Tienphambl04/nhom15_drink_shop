@@ -47,13 +47,13 @@ function AdminSidebar() {
           {openMenus.categories && (
             <ul className="submenu">
               <li>
-                <NavLink to="/admin/categories" activeClassName="active">Danh sách danh mục</NavLink>
+                <NavLink to="/admin/danh-muc" activeClassName="active">Danh sách danh mục</NavLink>
               </li>
               <li>
-                <NavLink to="/admin/categories/add" activeClassName="active">Thêm danh mục mới</NavLink>
+                <NavLink to="/admin/danh-muc/add" activeClassName="active">Thêm danh mục mới</NavLink>
               </li>
               <li>
-                <NavLink to="/admin/drinks/add" activeClassName="active">Thêm đồ uống mới</NavLink>
+                <NavLink to="/admin/do-uong/add" activeClassName="active">Thêm đồ uống mới</NavLink>
               </li>
             </ul>
           )}
