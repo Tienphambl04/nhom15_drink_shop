@@ -12,7 +12,7 @@ export default function ThemDanhMuc({ onAdded }) {
     }
     try {
       const res = await themDanhMuc(tenDanhMuc);
-      alert(res.message); // ✅ báo thành công
+      alert(res.message); // 
       setTenDanhMuc('');
       if (onAdded) onAdded();
     } catch (error) {

@@ -55,6 +55,9 @@ function AdminSidebar() {
               <li>
                 <NavLink to="/admin/do-uong/add" activeClassName="active">Thêm đồ uống mới</NavLink>
               </li>
+              <li>
+                <NavLink to="/admin/tuy-chon/add" activeClassName="active">Thêm tùy chọn mới</NavLink>
+              </li>
             </ul>
           )}
         </li>

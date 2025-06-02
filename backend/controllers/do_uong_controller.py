@@ -58,9 +58,17 @@ def xoa_do_uong(ma_do_uong):
     do_uong = DoUong.query.get(ma_do_uong)
     if not do_uong:
         return jsonify({"success": False, "message": "Không tìm thấy đồ uống"}), 404
+
+    # Xóa ảnh nếu có
+    if do_uong.hinh_anh:
+        hinh_path = os.path.join(UPLOAD_FOLDER, do_uong.hinh_anh)
+        if os.path.exists(hinh_path):
+            os.remove(hinh_path)
+
     db.session.delete(do_uong)
     db.session.commit()
     return jsonify({"success": True, "message": "Đã xóa đồ uống"})
+
 
 # Cập nhật đồ uống
 def sua_do_uong(ma_do_uong):
@@ -78,7 +86,14 @@ def sua_do_uong(ma_do_uong):
     do_uong.hien_thi = parse_bool(hien_thi_str)
 
     file = request.files.get('hinh_anh')
-    if file:
+    if file and file.filename:
+        # Nếu có ảnh mới thì xóa ảnh cũ (nếu có)
+        if do_uong.hinh_anh:
+            old_path = os.path.join(UPLOAD_FOLDER, do_uong.hinh_anh)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+
+        # Lưu ảnh mới
         filename = secure_filename(file.filename)
         path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(path)

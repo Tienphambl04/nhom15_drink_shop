@@ -38,5 +38,8 @@ def create_app():
     @app.route('/uploads/hinh_anh/<filename>')
     def serve_uploaded_file(filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    from routes.tuy_chon_route import tuy_chon_bp
+    app.register_blueprint(tuy_chon_bp, url_prefix='/api/tuy-chon')
+
 
     return app
