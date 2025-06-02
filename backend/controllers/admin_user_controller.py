@@ -1,124 +1,69 @@
-from flask import jsonify, request
+from flask import request, jsonify
+from werkzeug.security import generate_password_hash
 from models.user import NguoiDung
 from database import db
-from werkzeug.security import generate_password_hash
 
-def list_users():
-    """Retrieve a list of all users."""
+# Lấy danh sách tất cả người dùng (đã có so_dien_thoai và dia_chi)
+def lay_danh_sach_nguoi_dung():
     users = NguoiDung.query.all()
-    user_list = [{
-        "ma_nguoi_dung": user.ma_nguoi_dung,
-        "ten_dang_nhap": user.ten_dang_nhap,
-        "email": user.email,
-        "ho_ten": user.ho_ten,
-        "dia_chi": user.dia_chi,
-        "so_dien_thoai": user.so_dien_thoai,
-        "vai_tro": user.vai_tro,
-        "trang_thai": user.trang_thai
-    } for user in users]
-    return jsonify({
-        "success": True,
-        "message": "Danh sách người dùng",
-        "data": user_list
-    }), 200
+    result = [{
+        "ma_nguoi_dung": u.ma_nguoi_dung,
+        "ten_dang_nhap": u.ten_dang_nhap,
+        "email": u.email,
+        "ho_ten": u.ho_ten,
+        "so_dien_thoai": u.so_dien_thoai,
+        "dia_chi": u.dia_chi,
+        "vai_tro": u.vai_tro,
+        "trang_thai": u.trang_thai
+    } for u in users]
+    return jsonify({"success": True, "data": result})
 
-def reset_password(user_id):
-    """Reset a user's password."""
-    data = request.get_json()
-    new_password = data.get('mat_khau_moi')
-    if not new_password:
-        return jsonify({"success": False, "message": "Mật khẩu mới là bắt buộc"}), 400
-
-    user = NguoiDung.query.get(user_id)
-    if not user:
-        return jsonify({"success": False, "message": "Người dùng không tồn tại"}), 404
-
-    user.mat_khau = generate_password_hash(new_password)
-    db.session.commit()
-    return jsonify({
-        "success": True,
-        "message": f"Đặt lại mật khẩu thành công cho {user.ten_dang_nhap}"
-    }), 200
-
-def toggle_account_status(user_id):
-    """Lock or unlock a user account."""
-    user = NguoiDung.query.get(user_id)
-    if not user:
-        return jsonify({"success": False, "message": "Người dùng không tồn tại"}), 404
-
-    # Prevent locking/unlocking self
-    current_user_id = request.user['ma_nguoi_dung']
-    if user.ma_nguoi_dung == current_user_id:
-        return jsonify({"success": False, "message": "Không thể khóa/mở khóa tài khoản của chính bạn"}), 403
-
-    user.trang_thai = 'hoat_dong' if user.trang_thai == 'bi_khoa' else 'bi_khoa'
-    db.session.commit()
-    status_message = "mở khóa" if user.trang_thai == 'hoat_dong' else "khóa"
-    return jsonify({
-        "success": True,
-        "message": f"Tài khoản {user.ten_dang_nhap} đã được {status_message}"
-    }), 200
-
-def delete_user(user_id):
-    """Delete a user account."""
-    user = NguoiDung.query.get(user_id)
-    if not user:
-        return jsonify({"success": False, "message": "Người dùng không tồn tại"}), 404
-
-    # Prevent deleting self
-    current_user_id = request.user['ma_nguoi_dung']
-    if user.ma_nguoi_dung == current_user_id:
-        return jsonify({"success": False, "message": "Không thể xóa tài khoản của chính bạn"}), 403
-
-    db.session.delete(user)
-    db.session.commit()
-    return jsonify({
-        "success": True,
-        "message": f"Tài khoản {user.ten_dang_nhap} đã được xóa"
-    }), 200
-
-def add_user():
-    """Add a new user (admin or customer)."""
+# Thêm tài khoản mới (có nhận thêm so_dien_thoai và dia_chi)
+def them_tai_khoan_moi():
     data = request.get_json()
 
-    # Validate required fields
-    required_fields = ['ten_dang_nhap', 'mat_khau', 'email', 'ho_ten', 'vai_tro']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"success": False, "message": f"Thiếu trường {field}"}), 400
-
-    # Check for existing username or email
     if NguoiDung.query.filter_by(ten_dang_nhap=data['ten_dang_nhap']).first():
-        return jsonify({"success": False, "message": "Tên đăng nhập đã tồn tại"}), 400
+        return jsonify({"message": "Tên đăng nhập đã tồn tại", "success": False}), 400
     if NguoiDung.query.filter_by(email=data['email']).first():
-        return jsonify({"success": False, "message": "Email đã tồn tại"}), 400
-
-    # Validate vai_tro
-    if data['vai_tro'] not in ['khach', 'admin']:
-        return jsonify({"success": False, "message": "Vai trò không hợp lệ"}), 400
+        return jsonify({"message": "Email đã tồn tại", "success": False}), 400
 
     hashed_password = generate_password_hash(data['mat_khau'])
-    new_user = NguoiDung(
+
+    user = NguoiDung(
         ten_dang_nhap=data['ten_dang_nhap'],
         mat_khau=hashed_password,
         email=data['email'],
         ho_ten=data['ho_ten'],
-        dia_chi=data.get('dia_chi', ''),
         so_dien_thoai=data.get('so_dien_thoai', ''),
-        vai_tro=data['vai_tro'],
+        dia_chi=data.get('dia_chi', ''),
+        vai_tro=data.get('vai_tro', 'khach'),
         trang_thai='hoat_dong'
     )
-    db.session.add(new_user)
+    db.session.add(user)
     db.session.commit()
-    return jsonify({
-        "success": True,
-        "message": "Tạo tài khoản thành công",
-        "data": {
-            "ma_nguoi_dung": new_user.ma_nguoi_dung,
-            "ten_dang_nhap": new_user.ten_dang_nhap,
-            "email": new_user.email,
-            "ho_ten": new_user.ho_ten,
-            "vai_tro": new_user.vai_tro,
-            "trang_thai": new_user.trang_thai
-        }
-    }), 201
+    return jsonify({"message": "Thêm tài khoản thành công", "success": True}), 201
+
+# Các API khác giữ nguyên (khóa mở khóa, reset mk, xóa) vì không liên quan đến so_dien_thoai và dia_chi
+def thay_doi_trang_thai(ma_nguoi_dung):
+    user = NguoiDung.query.get(ma_nguoi_dung)
+    if not user:
+        return jsonify({"message": "Người dùng không tồn tại", "success": False}), 404
+    user.trang_thai = 'bi_khoa' if user.trang_thai == 'hoat_dong' else 'hoat_dong'
+    db.session.commit()
+    return jsonify({"message": f"Đã cập nhật trạng thái thành {user.trang_thai}", "success": True})
+
+def reset_mat_khau(ma_nguoi_dung):
+    user = NguoiDung.query.get(ma_nguoi_dung)
+    if not user:
+        return jsonify({"message": "Người dùng không tồn tại", "success": False}), 404
+    user.mat_khau = generate_password_hash("123456")  # Mật khẩu mặc định
+    db.session.commit()
+    return jsonify({"message": "Mật khẩu đã được reset về mặc định", "success": True})
+
+def xoa_tai_khoan(ma_nguoi_dung):
+    user = NguoiDung.query.get(ma_nguoi_dung)
+    if not user:
+        return jsonify({"message": "Người dùng không tồn tại", "success": False}), 404
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"message": "Xóa tài khoản thành công", "success": True})

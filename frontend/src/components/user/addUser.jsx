@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { addUser } from '../../api/adminUser';
 
-
 function AddUser() {
   const [formData, setFormData] = useState({
     ho_ten: '',
     ten_dang_nhap: '',
     email: '',
+    so_dien_thoai: '',
+    dia_chi: '',
     mat_khau: '',
     mat_khau_xac_nhan: '',
-    vai_tro: 'khach', 
+    vai_tro: 'khach',
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -28,6 +29,7 @@ function AddUser() {
       alert('Email không hợp lệ.');
       return false;
     }
+    // Optional: validate phone number format here nếu cần
     return true;
   };
 
@@ -36,6 +38,8 @@ function AddUser() {
       ho_ten: '',
       ten_dang_nhap: '',
       email: '',
+      so_dien_thoai: '',
+      dia_chi: '',
       mat_khau: '',
       mat_khau_xac_nhan: '',
       vai_tro: 'khach',
@@ -51,6 +55,8 @@ function AddUser() {
       ho_ten: formData.ho_ten.trim(),
       ten_dang_nhap: formData.ten_dang_nhap.trim(),
       email: formData.email.trim(),
+      so_dien_thoai: formData.so_dien_thoai.trim(),
+      dia_chi: formData.dia_chi.trim(),
       mat_khau: formData.mat_khau,
       vai_tro: formData.vai_tro,
     };
@@ -107,6 +113,30 @@ function AddUser() {
               value={formData.email}
               onChange={handleChange}
               required
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="so_dien_thoai">Số điện thoại</label>
+            <input
+              type="tel"
+              id="so_dien_thoai"
+              name="so_dien_thoai"
+              value={formData.so_dien_thoai}
+              onChange={handleChange}
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="dia_chi">Địa chỉ</label>
+            <input
+              type="text"
+              id="dia_chi"
+              name="dia_chi"
+              value={formData.dia_chi}
+              onChange={handleChange}
               disabled={isLoading}
             />
           </div>
