@@ -47,12 +47,12 @@ def dang_nhap():
         "success": True,
         "token": token,
         "user": {
+            "ma_nguoi_dung": user.ma_nguoi_dung,  # Thêm dòng này
             "ho_ten": user.ho_ten,
             "vai_tro": user.vai_tro,
-            "trang_thai": user.trang_thai  # gửi trạng thái về frontend để xử lý nếu cần
+            "trang_thai": user.trang_thai
         }
     }), 200
-
 
 def cap_nhat_thong_tin(current_user):
     data = request.get_json()

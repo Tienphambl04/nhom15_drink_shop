@@ -290,60 +290,51 @@ body {
 .cart {
   display: flex;
   align-items: center;
-}
-
-.cart a {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: #222;
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-family: Arial, sans-serif;
 }
 
 .cart-icon-wrap {
   position: relative;
-  margin-right: 18px;
+  display: inline-block;
+  margin-right: 10px;
 }
 
-.cart-bag-icon {
-  width: 56px;
-  height: 56px;
+.cart-logo-icon {
+  width: 40px;      /* kích thước ảnh */
+  height: 40px;
   object-fit: contain;
+  display: block;
 }
 
 .cart-count {
   position: absolute;
-  top: -12px;
-  left: 36px;
-  background: #000;
-  color: #fff;
-  font-size: 18px;
+  top: -6px;
+  right: -6px;
+  background-color: red;
+  color: white;
+  font-size: 12px;
   font-weight: bold;
-  width: 30px;
-  height: 30px;
+  padding: 2px 6px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #fff;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1;
+  pointer-events: none; /* tránh che mất click */
 }
 
 .cart-info {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  font-size: 14px;
+  color: #333;
 }
 
 .cart-title {
-  font-size: 1.3rem;
-  font-weight: bold;
-  letter-spacing: 1px;
-  color: #222;
+  font-weight: 600;
+  font-size: 16px;
 }
 
 .cart-desc {
-  font-size: 1.1rem;
-  color: #222;
-  margin-top: -28px;
+  font-size: 13px;
+  color: #666;
 }

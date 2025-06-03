@@ -24,6 +24,25 @@ def lay_do_uong_theo_danh_muc(ma_danh_muc):
     } for d in ds]
     return jsonify({"success": True, "data": result})
 
+# Lấy chi tiết đồ uống theo ID
+def lay_do_uong_theo_id(ma_do_uong):
+    do_uong = DoUong.query.get(ma_do_uong)
+    if not do_uong:
+        return jsonify({"success": False, "message": "Không tìm thấy đồ uống"}), 404
+
+    result = {
+        "ma_do_uong": do_uong.ma_do_uong,
+        "ten_do_uong": do_uong.ten_do_uong,
+        "gia": float(do_uong.gia),
+        "giam_gia_phan_tram": do_uong.giam_gia_phan_tram,
+        "mo_ta": do_uong.mo_ta,
+        "hinh_anh": do_uong.hinh_anh,
+        "ma_danh_muc": do_uong.ma_danh_muc,
+        "hien_thi": do_uong.hien_thi
+    }
+    return jsonify({"success": True, "data": result})
+
+
 # Thêm đồ uống mới
 def them_do_uong():
     ten = request.form.get('ten_do_uong')

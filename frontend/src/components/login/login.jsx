@@ -12,26 +12,36 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
-    const result = await loginUser({ ten_dang_nhap: tenDangNhap, mat_khau: matKhau });
 
-    if (result.success) {
-      if (result.user.trang_thai === 'bi_khoa') {
-        setMessage('Tài khoản của bạn đang bị khóa, không thể đăng nhập.');
-        return;
-      }
+    try {
+      const result = await loginUser({ ten_dang_nhap: tenDangNhap, mat_khau: matKhau });
 
-      alert('Đăng nhập thành công!');
-      localStorage.setItem('token', result.token);
-      localStorage.setItem('ten_dang_nhap', tenDangNhap);
-      localStorage.setItem('vai_tro', result.user.vai_tro);
+      if (result.success && result.token && result.user) {
+        if (result.user.trang_thai === 'bi_khoa') {
+          setMessage('Tài khoản của bạn đang bị khóa, không thể đăng nhập.');
+          return;
+        }
 
-      if (result.user.vai_tro === 'admin') {
-        navigate('/admin/dashboard');
+        // Lưu thông tin vào localStorage
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('ten_dang_nhap', tenDangNhap);
+        localStorage.setItem('vai_tro', result.user.vai_tro);
+        localStorage.setItem('ma_nguoi_dung', result.user.ma_nguoi_dung);
+
+        alert('Đăng nhập thành công!');
+
+        // Chuyển hướng dựa trên vai trò
+        if (result.user.vai_tro === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/');
+        }
       } else {
-        navigate('/');
+        setMessage(result.message || 'Sai tên đăng nhập hoặc mật khẩu!');
       }
-    } else {
-      setMessage(result.message || 'Sai tên đăng nhập hoặc mật khẩu!');
+    } catch (error) {
+      setMessage('Lỗi khi đăng nhập. Vui lòng thử lại sau.');
+      console.error('Lỗi đăng nhập:', error);
     }
   };
 

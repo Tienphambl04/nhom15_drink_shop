@@ -34,6 +34,9 @@ def create_app():
     from routes.do_uong_route import do_uong_bp
     app.register_blueprint(do_uong_bp, url_prefix='/api/do-uong')
 
+    from routes.gio_hang_routes import gio_hang_bp
+    app.register_blueprint(gio_hang_bp, url_prefix='/api/gio-hang')
+
     # Route để phục vụ ảnh đã upload
     @app.route('/uploads/hinh_anh/<filename>')
     def serve_uploaded_file(filename):

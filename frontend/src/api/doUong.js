@@ -9,6 +9,16 @@ export async function getDoUongTheoDanhMuc(maDanhMuc) {
   const data = await res.json();
   return data.data; // mảng đồ uống
 }
+// Lấy thông tin đồ uống theo ID
+export async function getDoUongTheoId(maDoUong) {
+  const res = await fetch(`${API_BASE}/${maDoUong}`);
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || 'Lấy đồ uống theo ID thất bại');
+  }
+  const data = await res.json();
+  return data.data; // object đồ uống
+}
 
 // Thêm đồ uống mới (formData chứa dữ liệu + file ảnh)
 export async function themDoUong(formData) {

@@ -8,6 +8,7 @@ import Profile from './components/header/profile';
 import AdminDashboard from './pages/adminDashboard';
 import AdminRoutes from './adminRoutes';
 import HienThiDoUongTheoDanhMuc from './components/danh_muc/danhMuc_khach';
+import GioHang from './components/gio_hang/gioHang';
 
 
 function App() {
@@ -58,6 +59,14 @@ function App() {
           }
         />
 
+        <Route
+          path="/gio-hang/:maNguoiDung"
+          element={
+            <MainLayout>
+              <GioHang />
+            </MainLayout>
+          }
+        />
         <Route
           path="/admin/dashboard" element={
             <MainLayout>

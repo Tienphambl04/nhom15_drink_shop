@@ -1,11 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { getDoUongTheoDanhMuc } from "../../api/doUong";
 import { fetchDanhSachDanhMuc } from "../../api/danh_muc";
 import { fetchTuyChonByDoUong } from "../../api/tuyChon";
+import { addGioHang } from "../../api/gioHang";
+import { useCart } from "../../components/gio_hang/cartContext";
 
 const HienThiDoUongTheoDanhMuc = () => {
   const { ma_danh_muc } = useParams();
+  const navigate = useNavigate();
+  const { fetchCart } = useCart();
+
   const [dsDoUong, setDsDoUong] = useState([]);
   const [tenDanhMuc, setTenDanhMuc] = useState("");
   const [loading, setLoading] = useState(true);
@@ -20,6 +25,8 @@ const HienThiDoUongTheoDanhMuc = () => {
     const loadData = async () => {
       try {
         setLoading(true);
+        setError(null);
+
         const dataDoUong = await getDoUongTheoDanhMuc(ma_danh_muc);
         setDsDoUong(dataDoUong);
 
@@ -32,8 +39,6 @@ const HienThiDoUongTheoDanhMuc = () => {
         } else {
           setTenDanhMuc("Không xác định");
         }
-
-        setError(null);
       } catch (err) {
         setError("Đã xảy ra lỗi khi gọi API");
       } finally {
@@ -51,9 +56,7 @@ const HienThiDoUongTheoDanhMuc = () => {
       const options = await fetchTuyChonByDoUong(drink.ma_do_uong);
       const grouped = {};
       options.forEach((opt) => {
-        if (!grouped[opt.loai_tuy_chon]) {
-          grouped[opt.loai_tuy_chon] = [];
-        }
+        if (!grouped[opt.loai_tuy_chon]) grouped[opt.loai_tuy_chon] = [];
         grouped[opt.loai_tuy_chon].push(opt);
       });
 
@@ -62,45 +65,107 @@ const HienThiDoUongTheoDanhMuc = () => {
       setSelectedOptions({});
       setShowModal(true);
     } catch (err) {
-      alert("Lỗi khi tải tùy chọn");
+      alert("Lỗi khi tải tùy chọn đồ uống");
+      console.error("Lỗi tải tùy chọn:", err);
     }
   };
 
   const handleChangeOption = (loai, gia_tri) => {
-    const selected = drinkOptions[loai].find((opt) => opt.gia_tri === gia_tri);
+    const opt = drinkOptions[loai].find((o) => o.gia_tri === gia_tri);
     setSelectedOptions((prev) => ({
       ...prev,
       [loai]: {
-        gia_tri: selected.gia_tri,
-        gia_them: selected.gia_them
-      }
+        gia_tri: opt.gia_tri,
+        gia_them: opt.gia_them,
+      },
     }));
   };
 
   const tinhTongTien = () => {
     if (!selectedDrink) return 0;
+
     const giamGia = selectedDrink.giam_gia_phan_tram || 0;
-    const giaSauGiam = Math.round(selectedDrink.gia * (1 - giamGia / 100));
+    const giaGoc = selectedDrink.gia || 0;
+    const giaSauGiam = Math.round(giaGoc * (1 - giamGia / 100));
+
     const tongGiaThem = Object.values(selectedOptions).reduce(
       (sum, opt) => sum + (opt.gia_them || 0),
       0
     );
+
     return giaSauGiam + tongGiaThem;
   };
 
-  const handleXacNhan = () => {
-    const tongTien = tinhTongTien();
-    console.log("🛒 Đã thêm vào giỏ:", {
-      drink: selectedDrink,
-      options: selectedOptions,
-      tong_tien: tongTien,
-    });
-    alert(`Đã thêm vào giỏ hàng!\nTổng tiền: ${tongTien.toLocaleString()} VNĐ`);
-    setShowModal(false);
+  const handleXacNhan = async () => {
+    if (!selectedDrink) return;
+
+    const maNguoiDung = localStorage.getItem("ma_nguoi_dung");
+    const token = localStorage.getItem("token");
+
+    if (!maNguoiDung || !token) {
+      alert("Bạn chưa đăng nhập. Vui lòng đăng nhập để thêm vào giỏ hàng.");
+      setShowModal(false);
+      navigate('/login');
+      return;
+    }
+
+    const tuyChonArr = Object.entries(selectedOptions).map(([loai, opt]) => ({
+      loai_tuy_chon: loai,
+      gia_tri: opt.gia_tri,
+      gia_them: opt.gia_them,
+    }));
+
+    try {
+      const result = await addGioHang({
+        ma_nguoi_dung: Number(maNguoiDung),
+        ma_do_uong: selectedDrink.ma_do_uong,
+        so_luong: 1,
+        tuy_chon: tuyChonArr,
+      });
+
+      console.log("Response từ addGioHang:", result);
+
+      const isSuccess = result && (
+        result.success === true ||
+        result.success === "true" ||
+        result.status === 'success' ||
+        result.status === 200 ||
+        result.message === 'success' ||
+        result.message === 'Thành công' ||
+        (result.data && !result.error) ||
+        (typeof result === 'object' && !result.error && !result.message?.toLowerCase().includes('lỗi'))
+      );
+
+      if (isSuccess) {
+        alert(`Đã thêm "${selectedDrink.ten_do_uong}" vào giỏ hàng!\nTổng tiền: ${tinhTongTien().toLocaleString()} VNĐ`);
+        setShowModal(false);
+        setSelectedOptions({});
+        setSelectedDrink(null);
+        setDrinkOptions({});
+        await fetchCart(); // Cập nhật cartCount trong Header
+      } else {
+        const errorMessage = result?.message || result?.error || "Phản hồi từ server không hợp lệ";
+        throw new Error(errorMessage);
+      }
+    } catch (err) {
+      console.error("Lỗi khi thêm vào giỏ hàng:", err);
+      
+      let errorMessage = "Lỗi không xác định";
+      
+      if (err.message) {
+        errorMessage = err.message;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      }
+      
+      alert(`Thêm vào giỏ hàng thất bại!\nLỗi: ${errorMessage}`);
+    }
   };
 
   return (
-    <div className="container">
+    <div className="category-drinks">
       <h2>Đồ uống theo danh mục: {tenDanhMuc}</h2>
 
       {loading && <p>Đang tải...</p>}
@@ -109,10 +174,7 @@ const HienThiDoUongTheoDanhMuc = () => {
         <p>Không có đồ uống nào được hiển thị trong danh mục này.</p>
       )}
 
-      <div
-        className="drink-list"
-        style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}
-      >
+      <div className="drink-list">
         {doUongHienThi.map((d) => {
           const giaGiam =
             d.giam_gia_phan_tram && d.giam_gia_phan_tram > 0
@@ -120,15 +182,7 @@ const HienThiDoUongTheoDanhMuc = () => {
               : d.gia;
 
           return (
-            <div
-              key={d.ma_do_uong}
-              style={{
-                border: "1px solid #ccc",
-                padding: "1rem",
-                width: 220,
-                boxSizing: "border-box",
-              }}
-            >
+            <div key={d.ma_do_uong} className="drink-item">
               <h3>{d.ten_do_uong}</h3>
               <p>Giá gốc: {Number(d.gia).toLocaleString()} VNĐ</p>
               <p>Giảm giá: {d.giam_gia_phan_tram || 0}%</p>
@@ -151,42 +205,89 @@ const HienThiDoUongTheoDanhMuc = () => {
         })}
       </div>
 
-      {/* Modal tùy chọn */}
       {showModal && selectedDrink && (
         <div
           style={{
             position: "fixed",
-            top: 0, left: 0, right: 0, bottom: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             background: "rgba(0,0,0,0.5)",
-            display: "flex", justifyContent: "center", alignItems: "center",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+            transition: "opacity 0.3s ease",
           }}
         >
-          <div style={{ background: "white", padding: 20, borderRadius: 10, width: 400 }}>
+          <div
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "8px",
+              width: "400px",
+              maxWidth: "90%",
+            }}
+          >
             <h3>Chọn tùy chọn cho: {selectedDrink.ten_do_uong}</h3>
 
-            {Object.entries(drinkOptions).map(([loai, ds]) => (
-              <div key={loai} style={{ marginBottom: 10 }}>
-                <label><b>{loai}</b>: </label>
-                <select
-                  value={selectedOptions[loai]?.gia_tri || ""}
-                  onChange={(e) => handleChangeOption(loai, e.target.value)}
-                >
-                  <option value="">--Chọn {loai}--</option>
-                  {ds.map((opt) => (
-                    <option key={opt.id} value={opt.gia_tri}>
-                      {opt.gia_tri} {opt.gia_them > 0 ? `(+${opt.gia_them}đ)` : ""}
-                    </option>
-                  ))}
-                </select>
+            {Object.entries(drinkOptions).map(([loai, opts]) => (
+              <div key={loai} style={{ marginBottom: "10px" }}>
+                <p><strong>{loai}</strong></p>
+                {opts.map((opt) => (
+                  <label
+                    key={opt.id || `${loai}-${opt.gia_tri}`}
+                    style={{ display: "block", margin: "5px 0" }}
+                  >
+                    <input
+                      type="radio"
+                      name={loai}
+                      value={opt.gia_tri}
+                      checked={selectedOptions[loai]?.gia_tri === opt.gia_tri}
+                      onChange={() => handleChangeOption(loai, opt.gia_tri)}
+                    />
+                    {opt.gia_tri} (+{opt.gia_them.toLocaleString()} VNĐ)
+                  </label>
+                ))}
               </div>
             ))}
 
-            <p><b>Tổng tiền:</b> {tinhTongTien().toLocaleString()} VNĐ</p>
+            <div style={{ marginTop: "10px" }}>
+              <p>
+                Tổng tiền: {tinhTongTien().toLocaleString()} VNĐ
+              </p>
+            </div>
 
-            <button onClick={handleXacNhan} style={{ marginRight: 10 }}>
-              Xác nhận
-            </button>
-            <button onClick={() => setShowModal(false)}>Hủy</button>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
+              <button
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedOptions({});
+                }}
+                style={{
+                  padding: "8px 16px",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleXacNhan}
+                style={{
+                  padding: "8px 16px",
+                  background: "#007bff",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                Xác nhận
+              </button>
+            </div>
           </div>
         </div>
       )}

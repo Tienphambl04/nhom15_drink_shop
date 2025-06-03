@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { fetchDanhSachDanhMuc } from "../../api/danh_muc";
+import { useCart } from "../../components/gio_hang/cartContext";
 import "./header.css";
 
 const Header = () => {
@@ -9,9 +10,12 @@ const Header = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const { cartCount, setCartCount } = useCart();
+
   const token = localStorage.getItem("token");
   const tenDangNhap = localStorage.getItem("ten_dang_nhap") || "User";
   const vaiTro = localStorage.getItem("vai_tro") || "";
+  const maNguoiDung = localStorage.getItem("ma_nguoi_dung") || "guest";
 
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -22,7 +26,11 @@ const Header = () => {
         setLoading(true);
         const data = await fetchDanhSachDanhMuc();
         if (data && data.success && Array.isArray(data.data)) {
-          setCategories(data.data);
+          const cleanedCategories = data.data.map((cat) => ({
+            ...cat,
+            ma_danh_muc: decodeURIComponent(cat.ma_danh_muc).replace(/[^a-zA-Z0-9-_& ]/g, ''),
+          }));
+          setCategories(cleanedCategories);
           setError(null);
         } else {
           setError("Dữ liệu danh mục không đúng định dạng");
@@ -35,10 +43,10 @@ const Header = () => {
         setLoading(false);
       }
     };
+
     loadCategories();
   }, []);
 
-  // Đóng dropdown khi click ra ngoài
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -53,6 +61,8 @@ const Header = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("ten_dang_nhap");
     localStorage.removeItem("vai_tro");
+    localStorage.removeItem("ma_nguoi_dung");
+    setCartCount(0); // Reset cart count khi đăng xuất
     navigate("/");
   };
 
@@ -79,8 +89,7 @@ const Header = () => {
                     onClick={() => setIsDropdown(!isDropdown)}
                     style={{ cursor: "pointer" }}
                   >
-                    {tenDangNhap}{" "}
-                    <i className="fas fa-chevron-down dropdown-icon"></i>
+                    {tenDangNhap} <i className="fas fa-chevron-down dropdown-icon"></i>
                   </span>
                   {isDropdown && (
                     <ul className="dropdown-menu">
@@ -137,7 +146,7 @@ const Header = () => {
               to="/"
               style={{ display: "flex", alignItems: "center", textDecoration: "none" }}
             >
-              <img src="img/anh1.jpg" alt="Drinkhub Logo" className="logo-img" />
+              <img src="/image/anh1.jpg" alt="Drinkhub Logo" className="logo-img" />
               <div className="logo-text">
                 <span className="logo-title">DRINKHUB</span>
                 <br />
@@ -158,8 +167,7 @@ const Header = () => {
               </li>
               <li className="has-dropdown">
                 <span>
-                  <i className="fas fa-birthday-cake"></i> Sản phẩm{" "}
-                  <i className="fas fa-chevron-down dropdown-icon"></i>
+                  <i className="fas fa-birthday-cake"></i> Sản phẩm <i className="fas fa-chevron-down dropdown-icon"></i>
                 </span>
                 <ul className="nav-dropdown">
                   {loading && <li>Đang tải danh mục...</li>}
@@ -169,7 +177,7 @@ const Header = () => {
                     !error &&
                     categories.map((cat) => (
                       <li key={cat.ma_danh_muc}>
-                        <NavLink to={`/danh-muc/${cat.ma_danh_muc}`}>
+                        <NavLink to={`/danh-muc/${encodeURIComponent(cat.ma_danh_muc)}`}>
                           {cat.ten_danh_muc}
                         </NavLink>
                       </li>
@@ -195,15 +203,13 @@ const Header = () => {
           </nav>
 
           <div className="cart">
-            <NavLink to="/cart">
+            <NavLink to={`/gio-hang/${maNguoiDung}`}>
               <span className="cart-icon-wrap">
-                <img src="img/anh2.png" alt="Cart" className="cart-logo-icon" />
-                <span className="cart-count">0</span>
+                <img src="/image/anh2.png" alt="Cart" className="cart-logo-icon" />
+                <span className="cart-count">{cartCount}</span>
               </span>
               <span className="cart-info">
                 <span className="cart-title">GIỎ HÀNG</span>
-                <br />
-                <span className="cart-desc">(0) sản phẩm</span>
               </span>
             </NavLink>
           </div>
