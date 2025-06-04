@@ -33,7 +33,6 @@ def dang_nhap():
     if not user or not check_password_hash(user.mat_khau, data['mat_khau']):
         return jsonify({"message": "Sai tên đăng nhập hoặc mật khẩu", "success": False}), 401
 
-    # Kiểm tra trạng thái tài khoản
     if getattr(user, 'trang_thai', None) == 'bi_khoa':
         return jsonify({"message": "Tài khoản của bạn đang bị khóa, không thể đăng nhập.", "success": False}), 403
 
@@ -47,14 +46,27 @@ def dang_nhap():
         "success": True,
         "token": token,
         "user": {
-            "ma_nguoi_dung": user.ma_nguoi_dung,  # Thêm dòng này
+            "ma_nguoi_dung": user.ma_nguoi_dung,
             "ho_ten": user.ho_ten,
             "vai_tro": user.vai_tro,
-            "trang_thai": user.trang_thai
+            "trang_thai": user.trang_thai,
+            "dia_chi": user.dia_chi,
+            "so_dien_thoai": user.so_dien_thoai
         }
     }), 200
 
 def cap_nhat_thong_tin(current_user):
+    if request.method == 'GET':
+        return jsonify({
+            "success": True,
+            "user": {
+                "ho_ten": current_user.ho_ten,
+                "email": current_user.email,
+                "dia_chi": current_user.dia_chi,
+                "so_dien_thoai": current_user.so_dien_thoai
+            }
+        }), 200
+
     data = request.get_json()
     
     if 'email' in data and data['email'] != current_user.email:

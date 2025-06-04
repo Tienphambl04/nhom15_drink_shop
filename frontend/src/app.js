@@ -9,7 +9,8 @@ import AdminDashboard from './pages/adminDashboard';
 import AdminRoutes from './adminRoutes';
 import HienThiDoUongTheoDanhMuc from './components/danh_muc/danhMuc_khach';
 import GioHang from './components/gio_hang/gioHang';
-
+import OrderForm from './components/don_hang/orderForm';
+import OrderHistory from './components/don_hang/orderHistory';
 
 function App() {
   return (
@@ -23,32 +24,36 @@ function App() {
           }
         />
         <Route
-          path="/register" element={
+          path="/register"
+          element={
             <MainLayout>
-            <Register />
+              <Register />
             </MainLayout>
-            }
+          }
         />
         <Route
-          path="/login" element={
+          path="/login"
+          element={
             <MainLayout>
-            <Login />
+              <Login />
             </MainLayout>
-            }
+          }
         />
         <Route
-          path="/change-password" element={
+          path="/change-password"
+          element={
             <MainLayout>
-            <ChangePassword />
+              <ChangePassword />
             </MainLayout>
-            }
+          }
         />
         <Route
-          path="/profile" element={
+          path="/profile"
+          element={
             <MainLayout>
-            <Profile />
+              <Profile />
             </MainLayout>
-            }
+          }
         />
         <Route
           path="/danh-muc/:ma_danh_muc"
@@ -58,7 +63,6 @@ function App() {
             </MainLayout>
           }
         />
-
         <Route
           path="/gio-hang/:maNguoiDung"
           element={
@@ -68,13 +72,37 @@ function App() {
           }
         />
         <Route
-          path="/admin/dashboard" element={
+          path="/don-hang"
+          element={
             <MainLayout>
-            <AdminDashboard />
+              <OrderForm />
             </MainLayout>
-            }
+          }
         />
-        <Route path="/admin/*" element={<MainLayout><AdminRoutes /></MainLayout>} />
+        <Route
+          path="/lich-su-don-hang"
+          element={
+            <MainLayout>
+              <OrderHistory />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <MainLayout>
+              <AdminDashboard />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/admin/*"
+          element={
+            <MainLayout>
+              <AdminRoutes />
+            </MainLayout>
+          }
+        />
       </Routes>
     </Router>
   );

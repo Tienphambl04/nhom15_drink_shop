@@ -24,8 +24,10 @@ export async function loginUser(data) {
     if (result.success && result.token && result.user && result.user.ma_nguoi_dung) {
       localStorage.setItem('token', result.token);
       localStorage.setItem('ma_nguoi_dung', result.user.ma_nguoi_dung);
-      localStorage.setItem('vai_tro', result.user.vai_tro); // Thêm vai_tro để đồng bộ với Login.jsx
-      localStorage.setItem('ho_ten', result.user.ho_ten); // Thêm ho_ten để đồng bộ
+      localStorage.setItem('vai_tro', result.user.vai_tro);
+      localStorage.setItem('ho_ten', result.user.ho_ten);
+      localStorage.setItem('dia_chi', result.user.dia_chi || '');
+      localStorage.setItem('so_dien_thoai', result.user.so_dien_thoai || '');
       return result;
     } else {
       return {
@@ -48,6 +50,8 @@ export function logout() {
   localStorage.removeItem('ma_nguoi_dung');
   localStorage.removeItem('vai_tro');
   localStorage.removeItem('ho_ten');
+  localStorage.removeItem('dia_chi');
+  localStorage.removeItem('so_dien_thoai');
 }
 
 export async function updateProfile(data, token) {
@@ -60,7 +64,13 @@ export async function updateProfile(data, token) {
       },
       body: JSON.stringify(data),
     });
-    return await res.json();
+    const result = await res.json();
+    if (result.success) {
+      localStorage.setItem('ho_ten', result.user.ho_ten);
+      localStorage.setItem('dia_chi', result.user.dia_chi || '');
+      localStorage.setItem('so_dien_thoai', result.user.so_dien_thoai || '');
+    }
+    return result;
   } catch (error) {
     return { success: false, message: 'Lỗi kết nối server' };
   }

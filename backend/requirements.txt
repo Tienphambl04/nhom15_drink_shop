@@ -4,3 +4,4 @@ pymysql
 flask-cors
 werkzeug
 pyjwt
+flask-socketio

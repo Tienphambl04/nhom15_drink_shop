@@ -87,7 +87,7 @@ function AdminSidebar() {
           {openMenus.orders && (
             <ul className="submenu">
               <li>
-                <NavLink to="/admin/orders" activeClassName="active">Danh sách đơn hàng</NavLink>
+                <NavLink to="/admin/don-hang" activeClassName="active">Danh sách đơn hàng</NavLink>
               </li>
             </ul>
           )}

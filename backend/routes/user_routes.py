@@ -11,10 +11,9 @@ user_bp.route('/register', methods=['POST'])(auth_controller.dang_ky)
 user_bp.route('/login', methods=['POST'])(auth_controller.dang_nhap)
 
 # Route cập nhật thông tin cá nhân
-@user_bp.route('/update-profile', methods=['PUT'])
+@user_bp.route('/update-profile', methods=['GET', 'PUT'])
 @token_required()
 def update_profile():
-    # Lấy người dùng hiện tại từ decoded token
     user_id = request.user['ma_nguoi_dung']
     current_user = NguoiDung.query.get(user_id)
     return auth_controller.cap_nhat_thong_tin(current_user)
@@ -31,4 +30,4 @@ def change_password():
 @user_bp.route('/admin-only', methods=['GET'])
 @token_required(role='admin')
 def admin_only():
-    return {"message": "Chào admin!"}
+    return {"message": "Chào mừng admin!", "success": True}, 200
