@@ -20,6 +20,7 @@ const HienThiDoUongTheoDanhMuc = () => {
   const [selectedDrink, setSelectedDrink] = useState(null);
   const [drinkOptions, setDrinkOptions] = useState({});
   const [selectedOptions, setSelectedOptions] = useState({});
+  const [isBuyNow, setIsBuyNow] = useState(false); // Flag to differentiate between "Add to Cart" and "Buy Now"
 
   useEffect(() => {
     const loadData = async () => {
@@ -52,6 +53,16 @@ const HienThiDoUongTheoDanhMuc = () => {
   const doUongHienThi = dsDoUong.filter((d) => d.hien_thi);
 
   const handleThemGioHang = async (drink) => {
+    setIsBuyNow(false); // Set to false for "Add to Cart"
+    await loadDrinkOptions(drink);
+  };
+
+  const handleBuyNow = async (drink) => {
+    setIsBuyNow(true); // Set to true for "Buy Now"
+    await loadDrinkOptions(drink);
+  };
+
+  const loadDrinkOptions = async (drink) => {
     try {
       const options = await fetchTuyChonByDoUong(drink.ma_do_uong);
       const grouped = {};
@@ -103,9 +114,9 @@ const HienThiDoUongTheoDanhMuc = () => {
     const token = localStorage.getItem("token");
 
     if (!maNguoiDung || !token) {
-      alert("Bạn chưa đăng nhập. Vui lòng đăng nhập để thêm vào giỏ hàng.");
+      alert("Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.");
       setShowModal(false);
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
@@ -116,42 +127,62 @@ const HienThiDoUongTheoDanhMuc = () => {
     }));
 
     try {
-      const result = await addGioHang({
-        ma_nguoi_dung: Number(maNguoiDung),
-        ma_do_uong: selectedDrink.ma_do_uong,
-        so_luong: 1,
-        tuy_chon: tuyChonArr,
-      });
-
-      console.log("Response từ addGioHang:", result);
-
-      const isSuccess = result && (
-        result.success === true ||
-        result.success === "true" ||
-        result.status === 'success' ||
-        result.status === 200 ||
-        result.message === 'success' ||
-        result.message === 'Thành công' ||
-        (result.data && !result.error) ||
-        (typeof result === 'object' && !result.error && !result.message?.toLowerCase().includes('lỗi'))
-      );
-
-      if (isSuccess) {
-        alert(`Đã thêm "${selectedDrink.ten_do_uong}" vào giỏ hàng!\nTổng tiền: ${tinhTongTien().toLocaleString()} VNĐ`);
+      if (isBuyNow) {
+        // For "Buy Now", store the item in localStorage and navigate to OrderForm
+        const tempItem = {
+          ma_do_uong: selectedDrink.ma_do_uong,
+          ten_do_uong: selectedDrink.ten_do_uong,
+          so_luong: 1,
+          tuy_chon: tuyChonArr,
+          tong_gia: tinhTongTien(),
+        };
+        localStorage.setItem("buyNowItem", JSON.stringify([tempItem]));
+        localStorage.removeItem("selectedCartItems"); // Clear cart items to avoid conflicts
         setShowModal(false);
         setSelectedOptions({});
         setSelectedDrink(null);
         setDrinkOptions({});
-        await fetchCart(); // Cập nhật cartCount trong Header
+        navigate("/don-hang");
       } else {
-        const errorMessage = result?.message || result?.error || "Phản hồi từ server không hợp lệ";
-        throw new Error(errorMessage);
+        // For "Add to Cart", call the addGioHang API
+        const result = await addGioHang({
+          ma_nguoi_dung: Number(maNguoiDung),
+          ma_do_uong: selectedDrink.ma_do_uong,
+          so_luong: 1,
+          tuy_chon: tuyChonArr,
+        });
+
+        const isSuccess =
+          result &&
+          (result.success === true ||
+            result.success === "true" ||
+            result.status === "success" ||
+            result.status === 200 ||
+            result.message === "success" ||
+            result.message === "Thành công" ||
+            (result.data && !result.error) ||
+            (typeof result === "object" &&
+              !result.error &&
+              !result.message?.toLowerCase().includes("lỗi")));
+
+        if (isSuccess) {
+          alert(
+            `Đã thêm "${selectedDrink.ten_do_uong}" vào giỏ hàng!\nTổng tiền: ${tinhTongTien().toLocaleString()} VNĐ`
+          );
+          setShowModal(false);
+          setSelectedOptions({});
+          setSelectedDrink(null);
+          setDrinkOptions({});
+          await fetchCart();
+        } else {
+          const errorMessage =
+            result?.message || result?.error || "Phản hồi từ server không hợp lệ";
+          throw new Error(errorMessage);
+        }
       }
     } catch (err) {
-      console.error("Lỗi khi thêm vào giỏ hàng:", err);
-      
+      console.error("Lỗi:", err);
       let errorMessage = "Lỗi không xác định";
-      
       if (err.message) {
         errorMessage = err.message;
       } else if (err.response?.data?.message) {
@@ -159,8 +190,7 @@ const HienThiDoUongTheoDanhMuc = () => {
       } else if (err.response?.data?.error) {
         errorMessage = err.response.data.error;
       }
-      
-      alert(`Thêm vào giỏ hàng thất bại!\nLỗi: ${errorMessage}`);
+      alert(`Thao tác thất bại!\nLỗi: ${errorMessage}`);
     }
   };
 
@@ -199,7 +229,24 @@ const HienThiDoUongTheoDanhMuc = () => {
                   Giá sau giảm: {giaGiam.toLocaleString()} VNĐ
                 </p>
               )}
-              <button onClick={() => handleThemGioHang(d)}>Thêm vào giỏ hàng</button>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button onClick={() => handleThemGioHang(d)}>
+                  Thêm vào giỏ hàng
+                </button>
+                <button
+                  onClick={() => handleBuyNow(d)}
+                  style={{
+                    backgroundColor: "#4CAF50",
+                    color: "white",
+                    padding: "8px 16px",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Mua ngay
+                </button>
+              </div>
             </div>
           );
         })}
@@ -230,11 +277,15 @@ const HienThiDoUongTheoDanhMuc = () => {
               maxWidth: "90%",
             }}
           >
-            <h3>Chọn tùy chọn cho: {selectedDrink.ten_do_uong}</h3>
+            <h3>
+              {isBuyNow ? "Mua ngay" : "Thêm vào giỏ hàng"}: {selectedDrink.ten_do_uong}
+            </h3>
 
             {Object.entries(drinkOptions).map(([loai, opts]) => (
               <div key={loai} style={{ marginBottom: "10px" }}>
-                <p><strong>{loai}</strong></p>
+                <p>
+                  <strong>{loai}</strong>
+                </p>
                 {opts.map((opt) => (
                   <label
                     key={opt.id || `${loai}-${opt.gia_tri}`}
@@ -254,9 +305,7 @@ const HienThiDoUongTheoDanhMuc = () => {
             ))}
 
             <div style={{ marginTop: "10px" }}>
-              <p>
-                Tổng tiền: {tinhTongTien().toLocaleString()} VNĐ
-              </p>
+              <p>Tổng tiền: {tinhTongTien().toLocaleString()} VNĐ</p>
             </div>
 
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
@@ -285,7 +334,7 @@ const HienThiDoUongTheoDanhMuc = () => {
                   cursor: "pointer",
                 }}
               >
-                Xác nhận
+                {isBuyNow ? "Xác nhận mua" : "Thêm vào giỏ hàng"}
               </button>
             </div>
           </div>

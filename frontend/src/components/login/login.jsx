@@ -28,13 +28,18 @@ function Login() {
         localStorage.setItem('vai_tro', result.user.vai_tro);
         localStorage.setItem('ma_nguoi_dung', result.user.ma_nguoi_dung);
 
-        alert('Đăng nhập thành công!');
+        console.log('Login.js: localStorage set:', {
+          token: localStorage.getItem('token'),
+          ten_dang_nhap: localStorage.getItem('ten_dang_nhap'),
+          vai_tro: localStorage.getItem('vai_tro'),
+          ma_nguoi_dung: localStorage.getItem('ma_nguoi_dung'),
+        });
 
-        // Chuyển hướng dựa trên vai trò
+        alert('Đăng nhập thành công!');
         if (result.user.vai_tro === 'admin') {
-          navigate('/admin/dashboard');
+          window.location.assign('/admin/dashboard');
         } else {
-          navigate('/');
+          window.location.assign('/');
         }
       } else {
         setMessage(result.message || 'Sai tên đăng nhập hoặc mật khẩu!');

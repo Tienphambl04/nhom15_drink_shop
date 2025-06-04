@@ -9,14 +9,14 @@ const Header = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [authState, setAuthState] = useState({
+    token: localStorage.getItem("token"),
+    vaiTro: localStorage.getItem("vai_tro") || "",
+    maNguoiDung: localStorage.getItem("ma_nguoi_dung") || "guest",
+  });
 
-  const { cartCount, setCartCount } = useCart();
-
-  const token = localStorage.getItem("token");
+  const { cartCount, setCartCount, fetchCart } = useCart();
   const tenDangNhap = localStorage.getItem("ten_dang_nhap") || "User";
-  const vaiTro = localStorage.getItem("vai_tro") || "";
-  const maNguoiDung = localStorage.getItem("ma_nguoi_dung") || "guest";
-
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
@@ -57,12 +57,84 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const handleLoginEvent = async () => {
+      // Update auth state
+      const newAuthState = {
+        token: localStorage.getItem("token"),
+        vaiTro: localStorage.getItem("vai_tro") || "",
+        maNguoiDung: localStorage.getItem("ma_nguoi_dung") || "guest",
+      };
+      setAuthState(newAuthState);
+
+      console.log('Header.js: userLogin event received, authState:', newAuthState);
+
+      // Fetch cart for non-admin users
+      if (newAuthState.token && newAuthState.vaiTro !== "admin" && newAuthState.maNguoiDung !== "guest") {
+        let attempts = 0;
+        const maxAttempts = 3;
+        const retryDelay = 100;
+
+        const tryFetchCart = async () => {
+          try {
+            console.log(`Header.js: Fetching cart, attempt ${attempts + 1}, user: ${newAuthState.maNguoiDung}`);
+            await fetchCart();
+            console.log('Header.js: Cart fetched, cartCount:', cartCount);
+          } catch (err) {
+            console.error(`Header.js: Lỗi khi lấy giỏ hàng, attempt ${attempts + 1}:`, err);
+            if (attempts < maxAttempts - 1) {
+              attempts++;
+              setTimeout(tryFetchCart, retryDelay);
+            } else {
+              setCartCount(0);
+              console.log('Header.js: Max fetch attempts reached, cartCount set to 0');
+            }
+          }
+        };
+
+        await tryFetchCart();
+      } else {
+        setCartCount(0);
+        console.log('Header.js: No cart fetch (not logged in or admin), cartCount set to 0');
+      }
+    };
+
+    window.addEventListener("userLogin", handleLoginEvent);
+    return () => window.removeEventListener("userLogin", handleLoginEvent);
+  }, [fetchCart, setCartCount, cartCount]);
+
+  useEffect(() => {
+    const loadCart = async () => {
+      if (authState.token && authState.vaiTro !== "admin" && authState.maNguoiDung !== "guest") {
+        try {
+          console.log('Header.js: useEffect fetching cart for user:', authState.maNguoiDung);
+          await fetchCart();
+          console.log('Header.js: useEffect cart fetched, cartCount:', cartCount);
+        } catch (err) {
+          console.error("Header.js: Lỗi khi lấy giỏ hàng trong useEffect:", err);
+          setCartCount(0);
+        }
+      } else {
+        setCartCount(0);
+      }
+    };
+    loadCart();
+  }, [authState.token, authState.maNguoiDung, authState.vaiTro, fetchCart, setCartCount]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("ten_dang_nhap");
     localStorage.removeItem("vai_tro");
     localStorage.removeItem("ma_nguoi_dung");
-    setCartCount(0); // Reset cart count khi đăng xuất
+    localStorage.removeItem("ho_ten");
+    localStorage.removeItem("dia_chi");
+    localStorage.removeItem("so_dien_thoai");
+    setCartCount(0);
+    setAuthState({
+      token: null,
+      vaiTro: "",
+      maNguoiDung: "guest",
+    });
     navigate("/");
   };
 
@@ -82,7 +154,7 @@ const Header = () => {
               </button>
             </div>
             <div className="auth-box">
-              {token ? (
+              {authState.token ? (
                 <div className="user-menu" ref={dropdownRef}>
                   <span
                     className="user-name"
@@ -93,7 +165,7 @@ const Header = () => {
                   </span>
                   {isDropdown && (
                     <ul className="dropdown-menu">
-                      {vaiTro === "admin" && (
+                      {authState.vaiTro === "admin" && (
                         <li>
                           <NavLink to="/admin/dashboard">Quản trị</NavLink>
                         </li>
@@ -159,7 +231,7 @@ const Header = () => {
             <ul>
               <li>
                 <NavLink
-                  to={vaiTro === "admin" ? "/admin/dashboard" : "/"}
+                  to={authState.vaiTro === "admin" ? "/admin/dashboard" : "/"}
                   className={({ isActive }) => (isActive ? "active" : "")}
                 >
                   <i className="fas fa-home"></i> Trang chủ
@@ -202,16 +274,20 @@ const Header = () => {
             </ul>
           </nav>
 
-          <div className="cart">
-            <NavLink to={`/gio-hang/${maNguoiDung}`}>
-              <span className="cart-icon-wrap">
-                <img src="/image/anh2.png" alt="Cart" className="cart-logo-icon" />
-                <span className="cart-count">{cartCount}</span>
-              </span>
-              <span className="cart-info">
-                <span className="cart-title">GIỎ HÀNG</span>
-              </span>
-            </NavLink>
+          <div className="cart-container">
+            {authState.token && authState.vaiTro !== "admin" && (
+              <div className="cart">
+                <NavLink to={`/gio-hang/${authState.maNguoiDung}`}>
+                  <span className="cart-icon-wrap">
+                    <img src="/image/anh2.png" alt="Cart" className="cart-logo-icon" />
+                    <span className="cart-count">{cartCount}</span>
+                  </span>
+                  <span className="cart-info">
+                    <span className="cart-title">GIỎ HÀNG</span>
+                  </span>
+                </NavLink>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,14 +1,42 @@
-import React, { useState } from 'react';
-import { updateProfile } from '../../api/auth';
+import React, { useState, useEffect } from 'react';
+import { updateProfile, getProfile, getToken } from '../../api/auth';
 import './form.css';
 
 function Profile() {
   const [formData, setFormData] = useState({
-    ho_ten: '',
-    email: '',
-    dia_chi: '',
-    so_dien_thoai: '',
+    ho_ten: localStorage.getItem('ho_ten') || '',
+    email: localStorage.getItem('email') || '',
+    dia_chi: localStorage.getItem('dia_chi') || '',
+    so_dien_thoai: localStorage.getItem('so_dien_thoai') || '',
   });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = getToken();
+      if (token) {
+        const result = await getProfile(token);
+        if (result.success) {
+          setFormData({
+            ho_ten: result.user.ho_ten || '',
+            email: result.user.email || '',
+            dia_chi: result.user.dia_chi || '',
+            so_dien_thoai: result.user.so_dien_thoai || '',
+          });
+          // Update localStorage with latest email (not stored during login)
+          localStorage.setItem('email', result.user.email || '');
+          localStorage.setItem('ho_ten', result.user.ho_ten || '');
+          localStorage.setItem('dia_chi', result.user.dia_chi || '');
+          localStorage.setItem('so_dien_thoai', result.user.so_dien_thoai || '');
+        } else {
+          alert(result.message || 'Không thể tải thông tin người dùng');
+        }
+      } else {
+        alert('Vui lòng đăng nhập để xem thông tin cá nhân');
+      }
+    };
+
+    fetchProfile();
+  }, []); // Empty dependency array to run only on mount
 
   const handleChange = e => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -40,12 +68,15 @@ function Profile() {
     }
 
     // Gửi dữ liệu nếu hợp lệ
-    const token = localStorage.getItem('token');
+    const token = getToken();
     const result = await updateProfile(formData, token);
 
     if (result.success) {
       alert('Cập nhật thông tin thành công!');
-      localStorage.setItem('userName', result.user.ho_ten);
+      localStorage.setItem('ho_ten', result.user.ho_ten);
+      localStorage.setItem('email', result.user.email || '');
+      localStorage.setItem('dia_chi', result.user.dia_chi || '');
+      localStorage.setItem('so_dien_thoai', result.user.so_dien_thoai || '');
     } else {
       alert(result.message);
     }

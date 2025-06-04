@@ -1,19 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getDonHang, getDonHangById, cancelDonHang } from '../../api/donHang';
 import { initSocket, disconnectSocket } from '../../socket';
-import { useNavigate } from 'react-router-dom';
 
 const OrderHistory = () => {
   const navigate = useNavigate();
-  const maNguoiDung = localStorage.getItem('ma_nguoi_dung'); // String from localStorage
+  const maNguoiDung = localStorage.getItem('ma_nguoi_dung');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
-  const [debugUpdate, setDebugUpdate] = useState(0); // Debug re-render trigger
+  
+  // Use refs to avoid stale closures
+  const ordersRef = useRef([]);
+  const selectedOrderRef = useRef(null);
 
-  const loadOrders = async () => {
+  // Update refs when state changes
+  useEffect(() => {
+    ordersRef.current = orders;
+  }, [orders]);
+
+  useEffect(() => {
+    selectedOrderRef.current = selectedOrder;
+  }, [selectedOrder]);
+
+  // Load orders from API
+  const loadOrders = useCallback(async () => {
     if (!maNguoiDung) {
       setError('Vui lòng đăng nhập để xem lịch sử đơn hàng');
       setLoading(false);
@@ -22,51 +35,89 @@ const OrderHistory = () => {
     try {
       setLoading(true);
       const data = await getDonHang({ ma_nguoi_dung: maNguoiDung });
-      console.log('API getDonHang response:', data); // Log API structure
+      console.log('API getDonHang response:', data);
       setOrders(data);
       setLoading(false);
     } catch (err) {
       setError(err.message);
       setLoading(false);
     }
-  };
+  }, [maNguoiDung]);
+
+  // Handle Socket.IO events - Remove dependencies to avoid stale closures
+  const handleSocketEvent = useCallback((event, data) => {
+    console.log('WebSocket event:', event, data);
+    
+    // Convert both to numbers for comparison
+    const userId = parseInt(maNguoiDung);
+    const dataUserId = parseInt(data.ma_nguoi_dung);
+    
+    console.log('User ID comparison:', { userId, dataUserId, matches: userId === dataUserId });
+    
+    if (userId !== dataUserId) {
+      console.log('Event ignored - user mismatch:', { userId, dataUserId });
+      return;
+    }
+
+    if (event === 'new' && data.ma_don_hang) {
+      console.log('Adding new order:', data);
+      setOrders((prevOrders) => {
+        // Check if order already exists
+        const exists = prevOrders.some(order => order.ma_don_hang === data.ma_don_hang);
+        if (exists) {
+          console.log('Order already exists, skipping add');
+          return prevOrders;
+        }
+        return [{ ...data }, ...prevOrders];
+      });
+    } 
+    else if (event === 'update' && data.ma_don_hang) {
+      console.log('Updating order with data:', data);
+      setOrders((prevOrders) => {
+        const updatedOrders = prevOrders.map((order) =>
+          order.ma_don_hang === data.ma_don_hang ? { ...order, ...data } : order
+        );
+        console.log('Updated orders:', updatedOrders);
+        return updatedOrders;
+      });
+      
+      // Update selected order if it matches
+      setSelectedOrder((prevSelected) => {
+        if (prevSelected && prevSelected.ma_don_hang === data.ma_don_hang) {
+          console.log('Updating selectedOrder:', data);
+          return { ...prevSelected, ...data };
+        }
+        return prevSelected;
+      });
+    } 
+    else if (event === 'delete' && data.ma_don_hang) {
+      console.log('Deleting order:', data.ma_don_hang);
+      setOrders((prevOrders) => 
+        prevOrders.filter((order) => order.ma_don_hang !== data.ma_don_hang)
+      );
+      
+      setSelectedOrder((prevSelected) => {
+        if (prevSelected && prevSelected.ma_don_hang === data.ma_don_hang) {
+          return null;
+        }
+        return prevSelected;
+      });
+    }
+  }, [maNguoiDung]); // Only depend on maNguoiDung
 
   useEffect(() => {
     loadOrders();
 
-    initSocket('user', (event, data) => {
-      console.log('WebSocket event:', event, data);
-      const userId = Number(maNguoiDung); // Convert to number for consistency
-      if (event === 'new' && data.ma_nguoi_dung === userId) {
-        console.log('Adding new order:', data);
-        setOrders((prev) => [{ ...data }, ...prev]);
-      } else if (event === 'update' && data.ma_nguoi_dung === userId) {
-        console.log('Updating order with data:', data);
-        setOrders((prev) => {
-          const updatedOrders = prev.map((order) =>
-            order.ma_don_hang === data.ma_don_hang ? { ...order, ...data } : { ...order }
-          );
-          console.log('Updated orders:', updatedOrders); // Log updated state
-          return [...updatedOrders]; // Ensure new array reference
-        });
-        if (selectedOrder && selectedOrder.ma_don_hang === data.ma_don_hang) {
-          console.log('Updating selectedOrder:', data);
-          setSelectedOrder((prev) => ({ ...prev, ...data }));
-        }
-        setDebugUpdate((prev) => prev + 1); // Force re-render
-      } else if (event === 'delete' && data.ma_nguoi_dung === userId) {
-        console.log('Deleting order:', data.ma_don_hang);
-        setOrders((prev) => prev.filter((order) => order.ma_don_hang !== data.ma_don_hang));
-        if (selectedOrder && selectedOrder.ma_don_hang === data.ma_don_hang) {
-          setSelectedOrder(null);
-        }
-      } else {
-        console.log('Event ignored:', { event, data_ma_nguoi_dung: data.ma_nguoi_dung, userId });
-      }
-    });
+    // Add a small delay to ensure socket connection is established
+    const timer = setTimeout(() => {
+      initSocket('user', handleSocketEvent);
+    }, 100);
 
-    return () => disconnectSocket();
-  }, [maNguoiDung]);
+    return () => {
+      clearTimeout(timer);
+      disconnectSocket();
+    };
+  }, [loadOrders, handleSocketEvent]);
 
   const handleViewDetails = async (maDonHang) => {
     try {
@@ -83,16 +134,21 @@ const OrderHistory = () => {
   const handleCancelOrder = async (maDonHang) => {
     if (!window.confirm('Bạn có chắc muốn hủy đơn hàng này?')) return;
     setActionLoading(`cancel-${maDonHang}`);
-    let prevOrders = [...orders]; // Deep copy
+    const prevOrders = [...orders];
+    const prevSelectedOrder = selectedOrder;
+    
     try {
+      // Optimistically update UI
       setOrders((prev) =>
         prev.map((order) =>
           order.ma_don_hang === maDonHang ? { ...order, trang_thai: 'da_huy' } : order
         )
       );
+      
       if (selectedOrder && selectedOrder.ma_don_hang === maDonHang) {
         setSelectedOrder((prev) => ({ ...prev, trang_thai: 'da_huy' }));
       }
+      
       const result = await cancelDonHang(maDonHang);
       if (result.message) {
         alert('Hủy đơn hàng thành công!');
@@ -100,13 +156,9 @@ const OrderHistory = () => {
         throw new Error(result.error || 'Hủy thất bại');
       }
     } catch (err) {
+      // Revert on error
       setOrders(prevOrders);
-      if (selectedOrder && selectedOrder.ma_don_hang === maDonHang) {
-        setSelectedOrder((prev) => ({
-          ...prev,
-          trang_thai: prevOrders.find((order) => order.ma_don_hang === maDonHang)?.trang_thai || prev.trang_thai,
-        }));
-      }
+      setSelectedOrder(prevSelectedOrder);
       alert(`Hủy đơn hàng thất bại: ${err.message}`);
     } finally {
       setActionLoading(null);
@@ -149,7 +201,6 @@ const OrderHistory = () => {
   return (
     <div className="order-history" style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
       <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Lịch sử đơn hàng</h2>
-      <p>Debug Update Count: {debugUpdate}</p> {/* Debug UI feedback */}
       {orders.length === 0 ? (
         <p style={{ textAlign: 'center' }}>Chưa có đơn hàng nào</p>
       ) : (

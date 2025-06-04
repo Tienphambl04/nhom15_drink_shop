@@ -28,6 +28,10 @@ export async function loginUser(data) {
       localStorage.setItem('ho_ten', result.user.ho_ten);
       localStorage.setItem('dia_chi', result.user.dia_chi || '');
       localStorage.setItem('so_dien_thoai', result.user.so_dien_thoai || '');
+      
+      // Dispatch custom event to notify components of login
+      window.dispatchEvent(new Event('userLogin'));
+      
       return result;
     } else {
       return {
@@ -50,8 +54,26 @@ export function logout() {
   localStorage.removeItem('ma_nguoi_dung');
   localStorage.removeItem('vai_tro');
   localStorage.removeItem('ho_ten');
-  localStorage.removeItem('dia_chi');
-  localStorage.removeItem('so_dien_thoai');
+  localStorage.removeItem('ten_dang_nhap');
+  localStorage.setItem('dia_chi', '');
+  localStorage.setItem('so_dien_thoai', '');
+  // Dispatch custom event to notify components of logout
+  window.dispatchEvent(new Event('userLogin'));
+}
+
+export async function getProfile(token) {
+  try {
+    const res = await fetch('http://localhost:5000/api/users/update-profile', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return await res.json();
+  } catch (error) {
+    return { success: false, message: 'Lỗi kết nối server' };
+  }
 }
 
 export async function updateProfile(data, token) {
