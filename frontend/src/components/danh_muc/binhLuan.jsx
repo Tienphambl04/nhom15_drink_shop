@@ -1,222 +1,217 @@
-import React, { useState, useEffect, useRef } from "react";
-import { themBinhLuan, layBinhLuan, xoaBinhLuan } from "../../api/binhLuan";
-import { initSocket, disconnectSocket } from "../../socket";
+
+import React, { useEffect, useState } from 'react';
+import { getBinhLuanTheoDoUong, themBinhLuan, xoaBinhLuan } from '../../api/binhLuan';
+import { initSocket, disconnectSocket } from '../../socket';
+import { getToken } from '../../api/auth';
 
 
 const CommentSection = ({ maDoUong }) => {
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState("");
-  const [rating, setRating] = useState(0);
-  const [parentCommentId, setParentCommentId] = useState(null);
+  const [binhLuans, setBinhLuans] = useState([]);
+  const [noiDung, setNoiDung] = useState('');
+  const [soSao, setSoSao] = useState(0);
+  const [maCha, setMaCha] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isSocketConnected, setIsSocketConnected] = useState(false);
-  const socketRef = useRef(null);
-  const isMounted = useRef(true);
+  const maNguoiDung = localStorage.getItem('ma_nguoi_dung');
+  const vaiTro = localStorage.getItem('vai_tro');
+  const hoTen = localStorage.getItem('ho_ten') || `User #${maNguoiDung}`;
 
-  const token = localStorage.getItem("token");
-  const maNguoiDung = token ? localStorage.getItem("ma_nguoi_dung") : null;
-  const vaiTro = token ? localStorage.getItem("vai_tro") : "khach";
+  // Tính trung bình đánh giá
+  const tinhTrungBinhDanhGia = () => {
+    const danhGias = binhLuans.filter((bl) => bl.so_sao && bl.so_sao > 0);
+    if (danhGias.length === 0) return { trungBinh: 0, soLuot: 0 };
+    const tongSao = danhGias.reduce((sum, bl) => sum + bl.so_sao, 0);
+    const trungBinh = (tongSao / danhGias.length).toFixed(1);
+    return { trungBinh, soLuot: danhGias.length };
+  };
 
-  // Tải bình luận ban đầu
+  // Hàm định dạng ngày
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'N/A';
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  };
+
+  // Lấy danh sách bình luận ban đầu
+  const fetchBinhLuan = async () => {
+    try {
+      const data = await getBinhLuanTheoDoUong(maDoUong);
+      setBinhLuans(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message || 'Lấy bình luận không thành công');
+      setBinhLuans([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Khởi tạo SocketIO và lấy bình luận ban đầu
   useEffect(() => {
-    const loadComments = async () => {
-      try {
-        const data = await layBinhLuan(maDoUong);
-        if (isMounted.current) {
-          setComments(data);
-        }
-      } catch (err) {
-        if (isMounted.current) {
-          setError("Lấy bình luận thất bại");
-          console.error("Lỗi khi tải bình luận:", err);
-        }
-      }
-    };
-    loadComments();
+    fetchBinhLuan();
 
-    return () => {
-      isMounted.current = false;
-    };
-  }, [maDoUong]);
-
-  // Thiết lập Socket.IO
-  useEffect(() => {
-    if (!socketRef.current) {
-      const handleSocketEvent = (event, data) => {
-        if (event === "binh_luan_moi" && data.ma_do_uong === maDoUong) {
-          setComments((prev) => [...prev, data]);
-          console.log("Nhận bình luận mới:", data);
-        } else if (event === "binh_luan_xoa" && data.ma_do_uong === maDoUong) {
-          setComments((prev) =>
-            prev.filter((c) => c.ma_binh_luan !== data.ma_binh_luan)
-          );
-          console.log("Bình luận đã xóa:", data);
+    if (maNguoiDung) {
+      initSocket('user', (event, data) => {
+        if (event === 'binh_luan_moi' && data.ma_do_uong === maDoUong) {
+          setBinhLuans((prev) => [...prev, data]);
+        } else if (event === 'xoa_binh_luan' && data.ma_do_uong === maDoUong) {
+          setBinhLuans((prev) => prev.filter((bl) => bl.ma_binh_luan !== data.ma_binh_luan));
         }
-      };
-
-      socketRef.current = initSocket(vaiTro, handleSocketEvent, "/binh-luan", {
-        onConnect: () => {
-          setIsSocketConnected(true);
-          socketRef.current.emit("join_room", { room: `do_uong_${maDoUong}` });
-          console.log(`Kết nối Socket.IO thành công trên /binh-luan với vai trò ${vaiTro}, phòng do_uong_${maDoUong}`);
-        },
-        onDisconnect: () => {
-          setIsSocketConnected(false);
-          console.log("Ngắt kết nối Socket.IO trên /binh-luan");
-        },
-        onError: (err) => console.error("Lỗi Socket.IO:", err),
-        reconnectOptions: {
-          reconnection: true,
-          reconnectionAttempts: 3,
-          reconnectionDelay: 5000,
-          randomizationFactor: 0.5,
-        },
-      });
+      }, '/binh-luan');
     }
 
-    // Dự phòng tải lại bình luận nếu socket ngắt quá lâu
-    const intervalId = setInterval(() => {
-      if (!isSocketConnected && isMounted.current) {
-        console.log("Socket ngắt kết nối, đang tải lại bình luận");
-        layBinhLuan(maDoUong)
-          .then((data) => isMounted.current && setComments(data))
-          .catch((err) => console.error("Lỗi tải bình luận dự phòng:", err));
-      }
-    }, 30000); // Tăng interval để giảm tải
-
     return () => {
-      clearInterval(intervalId);
-      if (socketRef.current) {
-        disconnectSocket("/binh-luan");
-        socketRef.current = null;
-      }
+      disconnectSocket('/binh-luan');
     };
-  }, [maDoUong, vaiTro]); // Loại bỏ isSocketConnected khỏi dependencies
+  }, [maDoUong, maNguoiDung]);
 
-  // Xử lý gửi bình luận
-  const handleSubmit = async (e) => {
+  // Thêm bình luận
+  const handleAddComment = async (e) => {
     e.preventDefault();
-    if (!token) {
-      setError("Vui lòng đăng nhập để bình luận");
+    if (!maNguoiDung || !getToken()) {
+      alert('Vui lòng đăng nhập để bình luận.');
       return;
     }
-    if (!newComment.trim()) {
-      setError("Nội dung bình luận không được để trống");
+    if (!noiDung.trim()) {
+      alert('Nội dung bình luận không được để trống.');
       return;
     }
 
     try {
-      const commentData = {
+      const data = await themBinhLuan({
         ma_do_uong: maDoUong,
-        noi_dung: newComment,
-        so_sao: rating || null,
-        ma_cha: parentCommentId || null,
-      };
-      await themBinhLuan(commentData);
-      setNewComment("");
-      setRating(0);
-      setParentCommentId(null);
-      setError(null);
+        noi_dung: noiDung,
+        so_sao: soSao > 0 ? soSao : null,
+        ma_cha: maCha,
+      });
+      if (data.success) {
+        setNoiDung('');
+        setSoSao(0);
+        setMaCha(null);
+        // Không gọi fetchBinhLuan vì SocketIO sẽ tự cập nhật
+      } else {
+        throw new Error(data.error || 'Thêm bình luận thất bại');
+      }
     } catch (err) {
-      setError(err.message || "Thêm bình luận thất bại");
-      console.error("Lỗi khi gửi bình luận:", err);
+      alert('Thêm bình luận thất bại: ' + err.message);
     }
   };
 
-  // Xử lý xóa bình luận
-  const handleDelete = async (maBinhLuan) => {
-    if (!token) {
-      setError("Vui lòng đăng nhập để xóa bình luận");
-      return;
-    }
+  // Xóa bình luận
+  const handleDeleteComment = async (maBinhLuan) => {
+    if (!window.confirm('Bạn có chắc muốn xóa bình luận này?')) return;
     try {
-      await xoaBinhLuan(maBinhLuan);
-      setError(null);
+      const data = await xoaBinhLuan(maBinhLuan);
+      if (!data.success) {
+        throw new Error(data.error || 'Xóa bình luận thất bại');
+      }
+      // Không gọi fetchBinhLuan vì SocketIO sẽ tự cập nhật
     } catch (err) {
-      setError(err.message || "Xóa bình luận thất bại");
-      console.error("Lỗi khi xóa bình luận:", err);
+      alert('Xóa bình luận thất bại: ' + err.message);
     }
   };
 
-  // Xử lý trả lời bình luận
-  const handleReply = (commentId) => {
-    setParentCommentId(commentId);
+  // Trả lời bình luận
+  const handleReply = (maBinhLuan) => {
+    setMaCha(maBinhLuan);
   };
 
-  // Hiển thị bình luận đệ quy
-  const renderComments = (comments, parentId = null, indentLevel = 0) => {
-    return comments
-      .filter((comment) => comment.ma_cha === parentId)
-      .map((comment) => (
-        <div
-          key={comment.ma_binh_luan}
-          style={{ marginLeft: `${indentLevel * 20}px` }}
-        >
-          <div className="comment">
-            <p>
-              <strong>{comment.ten_nguoi_dung}</strong> (
-              {new Date(comment.ngay_tao).toLocaleString()}):
-            </p>
-            <p>{comment.noi_dung}</p>
-            {comment.so_sao && <p>Đánh giá: {"★".repeat(comment.so_sao)}</p>}
-            <button onClick={() => handleReply(comment.ma_binh_luan)}>
-              Trả lời
-            </button>
-            {(comment.ma_nguoi_dung === maNguoiDung || vaiTro === "admin") && (
-              <button
-                onClick={() => handleDelete(comment.ma_binh_luan)}
-                style={{ marginLeft: "10px" }}
-              >
-                Xóa
-              </button>
-            )}
-          </div>
-          {renderComments(comments, comment.ma_binh_luan, indentLevel + 1)}
-        </div>
-      ));
+  // Hiển thị sao đánh giá
+  const renderStars = (soSao) => {
+    return (
+      <div className="star-rating">
+        {[...Array(5)].map((_, i) => (
+          <span key={i} style={{ color: i < soSao ? '#FFD700' : '#ccc' }}>★</span>
+        ))}
+      </div>
+    );
   };
+
+  const { trungBinh, soLuot } = tinhTrungBinhDanhGia();
+
+  if (loading) return <p>Đang tải bình luận...</p>;
+  if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
   return (
     <div className="comment-section">
       <h3>Bình luận</h3>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <textarea
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Viết bình luận của bạn..."
-          rows="4"
-          className="comment-textarea"
-        />
-        <div className="rating">
-          <label>Đánh giá: </label>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <span
-              key={star}
-              className={star <= rating ? "star active" : "star"}
-              onClick={() => setRating(star)}
+      <div className="average-rating">
+        <p>
+          Đánh giá trung bình: {trungBinh} ★ ({soLuot} lượt đánh giá)
+        </p>
+        {renderStars(Math.round(trungBinh))}
+      </div>
+      {maNguoiDung && getToken() ? (
+        <form onSubmit={handleAddComment} className="comment-form">
+          <textarea
+            value={noiDung}
+            onChange={(e) => setNoiDung(e.target.value)}
+            placeholder="Viết bình luận của bạn..."
+            className="comment-textarea"
+          />
+          <div className="star-rating">
+            <label>Đánh giá: </label>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                onClick={() => setSoSao(star)}
+                style={{ cursor: 'pointer', color: star <= soSao ? '#FFD700' : '#ccc' }}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          {maCha && (
+            <p>
+              Đang trả lời bình luận #{maCha}{' '}
+              <button type="button" onClick={() => setMaCha(null)} className="cancel-reply">
+                Hủy trả lời
+              </button>
+            </p>
+          )}
+          <button type="submit" className="submit-comment">Gửi bình luận</button>
+        </form>
+      ) : (
+        <p>Vui lòng <a href="/login">đăng nhập</a> để bình luận.</p>
+      )}
+      {binhLuans.length === 0 ? (
+        <p>Chưa có bình luận nào.</p>
+      ) : (
+        <div className="comment-list">
+          {binhLuans.map((bl) => (
+            <div
+              key={bl.ma_binh_luan}
+              className="comment-item"
+              style={{ marginLeft: bl.ma_cha ? '20px' : '0' }}
             >
-              ★
-            </span>
+              <p>
+                <strong>{bl.ma_nguoi_dung === maNguoiDung ? hoTen : `User #${bl.ma_nguoi_dung}`}</strong> - {formatDate(bl.ngay_tao)}
+              </p>
+              <p>{bl.noi_dung}</p>
+              {bl.so_sao && renderStars(bl.so_sao)}
+              <div className="comment-actions">
+                <button onClick={() => handleReply(bl.ma_binh_luan)} className="reply-button">
+                  Trả lời
+                </button>
+                {(bl.ma_nguoi_dung === maNguoiDung || vaiTro === 'admin') && (
+                  <button
+                    onClick={() => handleDeleteComment(bl.ma_binh_luan)}
+                    className="delete-button"
+                  >
+                    Xóa
+                  </button>
+                )}
+              </div>
+            </div>
           ))}
         </div>
-        {parentCommentId && (
-          <p>
-            Đang trả lời bình luận #{parentCommentId}{" "}
-            <button onClick={() => setParentCommentId(null)}>Hủy</button>
-          </p>
-        )}
-        <button type="submit" className="submit-button">
-          Gửi bình luận
-        </button>
-      </form>
-      <div className="comments-list">
-        {comments.length > 0 ? (
-          renderComments(comments)
-        ) : (
-          <p>Chưa có bình luận nào.</p>
-        )}
-      </div>
+      )}
     </div>
   );
 };

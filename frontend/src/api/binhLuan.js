@@ -10,81 +10,42 @@ function getHeaders(isJson = true) {
   return headers;
 }
 
-/**
- * Thêm bình luận mới
- * @param {Object} data - Dữ liệu bình luận { ma_do_uong, noi_dung, so_sao, ma_cha }
- * @returns {Promise<Object>} - Kết quả thêm bình luận
- */
+export async function getBinhLuanTheoDoUong(maDoUong) {
+  const res = await fetch(`${API_BASE}/do-uong/${maDoUong}`, {
+    headers: getHeaders(false),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Lấy bình luận thất bại');
+  }
+  const data = await res.json();
+  return data.data;
+}
+
 export async function themBinhLuan(data) {
-  try {
-    const token = getToken();
-    if (!token) {
-      throw new Error('Vui lòng đăng nhập để thêm bình luận');
-    }
-
-    const res = await fetch(API_BASE, {
-      method: 'POST',
-      headers: getHeaders(true),
-      body: JSON.stringify(data),
-    });
-
-    const result = await res.json();
-    if (!res.ok) {
-      throw new Error(result.message || 'Thêm bình luận thất bại');
-    }
-    return result;
-  } catch (error) {
-    console.error('Lỗi khi thêm bình luận:', error);
-    throw new Error(error.message || 'Lỗi hệ thống khi thêm bình luận');
+  const maNguoiDung = localStorage.getItem('ma_nguoi_dung');
+  const res = await fetch(API_BASE, {
+    method: 'POST',
+    headers: getHeaders(true),
+    body: JSON.stringify({ ...data, ma_nguoi_dung: maNguoiDung }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Thêm bình luận thất bại');
   }
+  return await res.json();
 }
 
-/**
- * Lấy danh sách bình luận theo mã đồ uống
- * @param {string} maDoUong - Mã đồ uống
- * @returns {Promise<Array>} - Danh sách bình luận
- */
-export async function layBinhLuan(maDoUong) {
-  try {
-    const res = await fetch(`${API_BASE}/${maDoUong}`, {
-      headers: getHeaders(false),
-    });
-
-    const result = await res.json();
-    if (!res.ok) {
-      throw new Error(result.message || 'Lấy bình luận thất bại');
-    }
-    return result.data || [];
-  } catch (error) {
-    console.error('Lỗi khi lấy bình luận:', error);
-    throw new Error(error.message || 'Lỗi hệ thống khi lấy bình luận');
-  }
-}
-
-/**
- * Xóa bình luận
- * @param {string} maBinhLuan - Mã bình luận
- * @returns {Promise<Object>} - Kết quả xóa bình luận
- */
 export async function xoaBinhLuan(maBinhLuan) {
-  try {
-    const token = getToken();
-    if (!token) {
-      throw new Error('Vui lòng đăng nhập để xóa bình luận');
-    }
-
-    const res = await fetch(`${API_BASE}/${maBinhLuan}`, {
-      method: 'DELETE',
-      headers: getHeaders(false),
-    });
-
-    const result = await res.json();
-    if (!res.ok) {
-      throw new Error(result.message || 'Xóa bình luận thất bại');
-    }
-    return result;
-  } catch (error) {
-    console.error('Lỗi khi xóa bình luận:', error);
-    throw new Error(error.message || 'Lỗi hệ thống khi xóa bình luận');
+  const maNguoiDung = localStorage.getItem('ma_nguoi_dung');
+  const res = await fetch(`${API_BASE}/${maBinhLuan}`, {
+    method: 'DELETE',
+    headers: getHeaders(true),
+    body: JSON.stringify({ ma_nguoi_dung: maNguoiDung }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Xóa bình luận thất bại');
   }
+  return await res.json();
 }
