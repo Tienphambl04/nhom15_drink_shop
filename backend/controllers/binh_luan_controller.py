@@ -1,3 +1,4 @@
+
 from flask import jsonify, request
 from flask_socketio import emit, join_room
 from database import db
@@ -20,27 +21,35 @@ def handle_disconnect_binh_luan():
 def handle_join_binh_luan(data):
     ma_nguoi_dung = data.get('ma_nguoi_dung')
     role = data.get('role')
+    ma_do_uong = data.get('ma_do_uong')
     if role == 'admin':
         join_room('admin')
         logger.debug('Admin joined room: admin')
     elif ma_nguoi_dung:
         join_room(f'user-{ma_nguoi_dung}')
+        if ma_do_uong:
+            join_room(f'drink-{ma_do_uong}')
+            logger.debug(f'User {ma_nguoi_dung} joined room: drink-{ma_do_uong}')
         logger.debug(f'User {ma_nguoi_dung} joined room: user-{ma_nguoi_dung}')
 
 # Lấy danh sách bình luận theo đồ uống
 def lay_binh_luan_theo_do_uong(ma_do_uong):
     try:
-        binh_luans = BinhLuan.query.filter_by(ma_do_uong=ma_do_uong).order_by(BinhLuan.ngay_tao.desc()).all()
+        binh_luans = db.session.query(BinhLuan, NguoiDung.ho_ten).\
+            join(NguoiDung, BinhLuan.ma_nguoi_dung == NguoiDung.ma_nguoi_dung).\
+            filter(BinhLuan.ma_do_uong == ma_do_uong).\
+            order_by(BinhLuan.ngay_tao.desc()).all()
         vn_tz = timezone(timedelta(hours=7))
         result = [{
             'ma_binh_luan': bl.ma_binh_luan,
-            'ma_nguoi_dung': bl.ma_nguoi_dung,
+            'ma_nguoi_dung': str(bl.ma_nguoi_dung),
+            'ho_ten': ho_ten,
             'ma_do_uong': bl.ma_do_uong,
             'ma_cha': bl.ma_cha,
             'noi_dung': bl.noi_dung,
             'so_sao': bl.so_sao,
             'ngay_tao': bl.ngay_tao.astimezone(vn_tz).strftime('%Y-%m-%d %H:%M:%S')
-        } for bl in binh_luans]
+        } for bl, ho_ten in binh_luans]
         return jsonify({'success': True, 'data': result}), 200
     except Exception as e:
         logger.error(f'Error fetching comments for drink {ma_do_uong}: {str(e)}')
@@ -56,28 +65,23 @@ def them_binh_luan():
         so_sao = data.get('so_sao')
         ma_cha = data.get('ma_cha')
 
-        # Validate inputs
         if not ma_nguoi_dung or not ma_do_uong or not noi_dung:
             return jsonify({'success': False, 'error': 'Thiếu thông tin bắt buộc'}), 400
 
-        # Check if user exists
-        user = NguoiDung.query.get(ma_nguoi_dung)
+        user = NguoiDung.query.get(int(ma_nguoi_dung))
         if not user:
             return jsonify({'success': False, 'error': 'Người dùng không tồn tại'}), 404
 
-        # Validate rating
         if so_sao is not None and (not isinstance(so_sao, int) or so_sao < 1 or so_sao > 5):
             return jsonify({'success': False, 'error': 'Số sao phải từ 1 đến 5'}), 400
 
-        # Validate parent comment if provided
         if ma_cha:
             parent_comment = BinhLuan.query.get(ma_cha)
             if not parent_comment or parent_comment.ma_do_uong != ma_do_uong:
                 return jsonify({'success': False, 'error': 'Bình luận cha không hợp lệ'}), 400
 
-        # Create new comment
         binh_luan = BinhLuan(
-            ma_nguoi_dung=ma_nguoi_dung,
+            ma_nguoi_dung=int(ma_nguoi_dung),
             ma_do_uong=ma_do_uong,
             noi_dung=noi_dung,
             so_sao=so_sao,
@@ -86,11 +90,11 @@ def them_binh_luan():
         db.session.add(binh_luan)
         db.session.commit()
 
-        # Prepare data for response and SocketIO
         vn_tz = timezone(timedelta(hours=7))
         binh_luan_data = {
             'ma_binh_luan': binh_luan.ma_binh_luan,
-            'ma_nguoi_dung': binh_luan.ma_nguoi_dung,
+            'ma_nguoi_dung': str(binh_luan.ma_nguoi_dung),
+            'ho_ten': user.ho_ten,
             'ma_do_uong': binh_luan.ma_do_uong,
             'ma_cha': binh_luan.ma_cha,
             'noi_dung': binh_luan.noi_dung,
@@ -98,7 +102,6 @@ def them_binh_luan():
             'ngay_tao': binh_luan.ngay_tao.astimezone(vn_tz).strftime('%Y-%m-%d %H:%M:%S')
         }
 
-        # Emit SocketIO event to admin and users viewing the same drink
         emit('binh_luan_moi', binh_luan_data, room=f'drink-{ma_do_uong}', namespace='/binh-luan')
         emit('binh_luan_moi', binh_luan_data, room='admin', namespace='/binh-luan')
         logger.debug(f'Sent binh_luan_moi for drink {ma_do_uong}: {binh_luan_data}')
@@ -116,24 +119,23 @@ def them_binh_luan():
 # Xóa bình luận
 def xoa_binh_luan(ma_binh_luan):
     try:
-        ma_nguoi_dung = request.get_json().get('ma_nguoi_dung')
+        data = request.get_json()
+        ma_nguoi_dung = data.get('ma_nguoi_dung')
         binh_luan = BinhLuan.query.get(ma_binh_luan)
 
         if not binh_luan:
             return jsonify({'success': False, 'error': 'Bình luận không tồn tại'}), 404
 
-        # Check if user exists and has permission
-        user = NguoiDung.query.get(ma_nguoi_dung)
+        user = NguoiDung.query.get(int(ma_nguoi_dung)) if ma_nguoi_dung else None
         if not user:
             return jsonify({'success': False, 'error': 'Người dùng không tồn tại'}), 404
-        if user.vai_tro != 'admin' and binh_luan.ma_nguoi_dung != ma_nguoi_dung:
+        if user.vai_tro != 'admin' and binh_luan.ma_nguoi_dung != int(ma_nguoi_dung):
             return jsonify({'success': False, 'error': 'Không có quyền xóa bình luận này'}), 403
 
         ma_do_uong = binh_luan.ma_do_uong
         db.session.delete(binh_luan)
         db.session.commit()
 
-        # Emit SocketIO event
         event_data = {'ma_binh_luan': ma_binh_luan, 'ma_do_uong': ma_do_uong}
         emit('xoa_binh_luan', event_data, room=f'drink-{ma_do_uong}', namespace='/binh-luan')
         emit('xoa_binh_luan', event_data, room='admin', namespace='/binh-luan')

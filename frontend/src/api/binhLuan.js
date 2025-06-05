@@ -1,3 +1,4 @@
+
 import { getToken } from './auth';
 
 const API_BASE = 'http://localhost:5000/api/binh-luan';
@@ -38,6 +39,7 @@ export async function themBinhLuan(data) {
 
 export async function xoaBinhLuan(maBinhLuan) {
   const maNguoiDung = localStorage.getItem('ma_nguoi_dung');
+  console.log('Sending xoaBinhLuan with maNguoiDung:', maNguoiDung); // Debug
   const res = await fetch(`${API_BASE}/${maBinhLuan}`, {
     method: 'DELETE',
     headers: getHeaders(true),
@@ -45,6 +47,7 @@ export async function xoaBinhLuan(maBinhLuan) {
   });
   if (!res.ok) {
     const err = await res.json();
+    console.error('Xóa bình luận lỗi:', err); // Debug
     throw new Error(err.error || 'Xóa bình luận thất bại');
   }
   return await res.json();

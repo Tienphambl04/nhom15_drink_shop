@@ -14,7 +14,6 @@ const CommentSection = ({ maDoUong }) => {
   const [error, setError] = useState(null);
   const maNguoiDung = localStorage.getItem('ma_nguoi_dung');
   const vaiTro = localStorage.getItem('vai_tro');
-  const hoTen = localStorage.getItem('ho_ten') || `User #${maNguoiDung}`;
 
   // Tính trung bình đánh giá
   const tinhTrungBinhDanhGia = () => {
@@ -42,6 +41,7 @@ const CommentSection = ({ maDoUong }) => {
   const fetchBinhLuan = async () => {
     try {
       const data = await getBinhLuanTheoDoUong(maDoUong);
+      console.log('Dữ liệu bình luận:', data); // Debug
       setBinhLuans(data);
       setError(null);
     } catch (err) {
@@ -58,12 +58,13 @@ const CommentSection = ({ maDoUong }) => {
 
     if (maNguoiDung) {
       initSocket('user', (event, data) => {
-        if (event === 'binh_luan_moi' && data.ma_do_uong === maDoUong) {
+        console.log('Socket event:', event, data); // Debug
+        if (event === 'new' && data.ma_do_uong == maDoUong) {
           setBinhLuans((prev) => [...prev, data]);
-        } else if (event === 'xoa_binh_luan' && data.ma_do_uong === maDoUong) {
+        } else if (event === 'delete' && data.ma_do_uong == maDoUong) {
           setBinhLuans((prev) => prev.filter((bl) => bl.ma_binh_luan !== data.ma_binh_luan));
         }
-      }, '/binh-luan');
+      }, '/binh-luan', maDoUong); // Truyền maDoUong
     }
 
     return () => {
@@ -94,7 +95,6 @@ const CommentSection = ({ maDoUong }) => {
         setNoiDung('');
         setSoSao(0);
         setMaCha(null);
-        // Không gọi fetchBinhLuan vì SocketIO sẽ tự cập nhật
       } else {
         throw new Error(data.error || 'Thêm bình luận thất bại');
       }
@@ -111,7 +111,6 @@ const CommentSection = ({ maDoUong }) => {
       if (!data.success) {
         throw new Error(data.error || 'Xóa bình luận thất bại');
       }
-      // Không gọi fetchBinhLuan vì SocketIO sẽ tự cập nhật
     } catch (err) {
       alert('Xóa bình luận thất bại: ' + err.message);
     }
@@ -191,7 +190,7 @@ const CommentSection = ({ maDoUong }) => {
               style={{ marginLeft: bl.ma_cha ? '20px' : '0' }}
             >
               <p>
-                <strong>{bl.ma_nguoi_dung === maNguoiDung ? hoTen : `User #${bl.ma_nguoi_dung}`}</strong> - {formatDate(bl.ngay_tao)}
+                <strong>{bl.ho_ten}</strong> - {formatDate(bl.ngay_tao)}
               </p>
               <p>{bl.noi_dung}</p>
               {bl.so_sao && renderStars(bl.so_sao)}

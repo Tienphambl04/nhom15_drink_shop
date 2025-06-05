@@ -1,8 +1,9 @@
+
 import io from 'socket.io-client';
 
 let sockets = {};
 
-export function initSocket(role, callback, namespace = '/don-hang') {
+export function initSocket(role, callback, namespace = '/don-hang', maDoUong = null) {
   if (sockets[namespace]) {
     sockets[namespace].disconnect();
     sockets[namespace] = null;
@@ -21,8 +22,8 @@ export function initSocket(role, callback, namespace = '/don-hang') {
   socket.on('connect', () => {
     console.log(`Connected to Socket.IO server on ${namespace} as ${role}`);
     const maNguoiDung = role === 'user' ? localStorage.getItem('ma_nguoi_dung') : null;
-    console.log('Joining with data:', { role, ma_nguoi_dung: maNguoiDung });
-    socket.emit('join', { role, ma_nguoi_dung: maNguoiDung });
+    console.log('Joining with data:', { role, ma_nguoi_dung: maNguoiDung, ma_do_uong: maDoUong });
+    socket.emit('join', { role, ma_nguoi_dung: maNguoiDung, ma_do_uong: maDoUong });
   });
 
   socket.on('connect_error', (error) => {
@@ -36,7 +37,7 @@ export function initSocket(role, callback, namespace = '/don-hang') {
   socket.on('reconnect', (attemptNumber) => {
     console.log(`Reconnected to ${namespace} after ${attemptNumber} attempts`);
     const maNguoiDung = role === 'user' ? localStorage.getItem('ma_nguoi_dung') : null;
-    socket.emit('join', { role, ma_nguoi_dung: maNguoiDung });
+    socket.emit('join', { role, ma_nguoi_dung: maNguoiDung, ma_do_uong: maDoUong });
   });
 
   socket.off('don_hang_moi');
@@ -84,5 +85,6 @@ export function disconnectSocket(namespace = '/don-hang') {
   if (sockets[namespace] && sockets[namespace].connected) {
     sockets[namespace].disconnect();
     sockets[namespace] = null;
+    console.log(`Disconnected from ${namespace}`);
   }
 }
