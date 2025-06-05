@@ -4,28 +4,89 @@ from database import db
 from models.don_hang import DonHang, ChiTietDonHang
 from models.gio_hang import GioHang
 from models.do_uong import DoUong
+from models.thong_bao import ThongBao
+from models.user import NguoiDung
 import json
 from datetime import datetime, timezone, timedelta
+import logging
+
+# Thiết lập logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Socket.IO connect and join event
 def handle_connect():
-    print('Client connected')
-    # This is handled in the join event below
+    logger.debug('Client connected')
 
 def handle_disconnect():
-    print('Client disconnected')
+    logger.debug('Client disconnected')
 
 def handle_join(data):
     ma_nguoi_dung = data.get('ma_nguoi_dung')
     role = data.get('role')
     if role == 'admin':
         join_room('admin')
-        print('Admin joined room: admin')
+        logger.debug('Admin joined room: admin')
     elif ma_nguoi_dung:
         join_room(f'user-{ma_nguoi_dung}')
-        print(f'User {ma_nguoi_dung} joined room: user-{ma_nguoi_dung}')
+        logger.debug(f'User {ma_nguoi_dung} joined room: user-{ma_nguoi_dung}')
 
-# Register Socket.IO events in app.py (see below)
+# Lấy danh sách thông báo
+def get_thong_bao():
+    ma_nguoi_dung = request.args.get('ma_nguoi_dung')
+    da_doc = request.args.get('da_doc')
+
+    if not ma_nguoi_dung:
+        return jsonify({'error': 'Thiếu mã người dùng'}), 400
+
+    query = ThongBao.query.filter_by(ma_nguoi_dung=ma_nguoi_dung)
+    if da_doc is not None:
+        query = query.filter_by(da_doc=bool(int(da_doc)))
+
+    thong_bao_list = query.order_by(ThongBao.ngay_tao.desc()).all()
+    vn_tz = timezone(timedelta(hours=7))
+    result = [{
+        'ma_thong_bao': tb.ma_thong_bao,
+        'ma_nguoi_dung': tb.ma_nguoi_dung,
+        'ma_don_hang': tb.ma_don_hang,
+        'loai_thong_bao': tb.loai_thong_bao,
+        'da_doc': tb.da_doc,
+        'ngay_tao': tb.ngay_tao.astimezone(vn_tz).strftime('%Y-%m-%d %H:%M:%S')
+    } for tb in thong_bao_list]
+
+    return jsonify(result), 200
+
+# Đánh dấu thông báo đã đọc
+def mark_thong_bao_read(ma_thong_bao):
+    thong_bao = ThongBao.query.get(ma_thong_bao)
+    if not thong_bao:
+        return jsonify({'error': 'Thông báo không tồn tại'}), 404
+
+    try:
+        thong_bao.da_doc = True
+        db.session.commit()
+        logger.debug(f'Marked notification {ma_thong_bao} as read')
+        return jsonify({'message': 'Đánh dấu thông báo đã đọc thành công'}), 200
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'Error marking notification {ma_thong_bao} as read: {str(e)}')
+        return jsonify({'error': str(e)}), 400
+
+# Xóa thông báo
+def delete_thong_bao(ma_thong_bao):
+    thong_bao = ThongBao.query.get(ma_thong_bao)
+    if not thong_bao:
+        return jsonify({'error': 'Thông báo không tồn tại'}), 404
+
+    try:
+        db.session.delete(thong_bao)
+        db.session.commit()
+        logger.debug(f'Deleted notification {ma_thong_bao}')
+        return jsonify({'message': 'Xóa thông báo thành công'}), 200
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'Error deleting notification {ma_thong_bao}: {str(e)}')
+        return jsonify({'error': str(e)}), 400
 
 # Tạo đơn hàng mới
 def create_don_hang():
@@ -38,6 +99,8 @@ def create_don_hang():
         phuong_thuc_thanh_toan = data.get('phuong_thuc_thanh_toan', 'tien_mat')
         ma_gio_hang_ids = data.get('ma_gio_hang_ids', [])
         chi_tiet = data.get('chi_tiet', [])
+
+        logger.debug(f'Creating order for user: {ma_nguoi_dung}, cart IDs: {ma_gio_hang_ids}')
 
         if not ten_khach or not dia_chi_khach:
             return jsonify({'error': 'Thiếu thông tin khách hàng'}), 400
@@ -131,10 +194,55 @@ def create_don_hang():
         if ma_gio_hang_ids:
             GioHang.query.filter(GioHang.ma_gio_hang.in_(ma_gio_hang_ids)).delete()
 
+        # Tạo thông báo cho admin và người dùng
+        admin = NguoiDung.query.filter_by(vai_tro='admin').first()
+        if not admin:
+            logger.error('Admin user not found')
+            raise Exception('Không tìm thấy người dùng admin')
+
+        thong_bao_admin = ThongBao(
+            ma_nguoi_dung=admin.ma_nguoi_dung,
+            ma_don_hang=new_don_hang.ma_don_hang,
+            loai_thong_bao='dat_hang'
+        )
+        db.session.add(thong_bao_admin)
+
+        if ma_nguoi_dung:
+            thong_bao_user = ThongBao(
+                ma_nguoi_dung=ma_nguoi_dung,
+                ma_don_hang=new_don_hang.ma_don_hang,
+                loai_thong_bao='dat_hang'
+            )
+            db.session.add(thong_bao_user)
+
         db.session.commit()
+        logger.debug(f'Order {new_don_hang.ma_don_hang} created successfully')
 
         # Gửi thông báo qua Socket.IO
         vn_tz = timezone(timedelta(hours=7))
+        thong_bao_data_admin = {
+            'ma_thong_bao': thong_bao_admin.ma_thong_bao,
+            'ma_don_hang': new_don_hang.ma_don_hang,
+            'ma_nguoi_dung': thong_bao_admin.ma_nguoi_dung,
+            'loai_thong_bao': 'dat_hang',
+            'da_doc': False,
+            'ngay_tao': thong_bao_admin.ngay_tao.astimezone(vn_tz).strftime('%Y-%m-%d %H:%M:%S')
+        }
+        emit('thong_bao_moi', thong_bao_data_admin, room='admin', namespace='/thong-bao')
+        logger.debug(f'Sent thong_bao_moi to admin: {thong_bao_data_admin}')
+
+        if ma_nguoi_dung:
+            thong_bao_data_user = {
+                'ma_thong_bao': thong_bao_user.ma_thong_bao,
+                'ma_don_hang': new_don_hang.ma_don_hang,
+                'ma_nguoi_dung': ma_nguoi_dung,
+                'loai_thong_bao': 'dat_hang',
+                'da_doc': False,
+                'ngay_tao': thong_bao_user.ngay_tao.astimezone(vn_tz).strftime('%Y-%m-%d %H:%M:%S')
+            }
+            emit('thong_bao_moi', thong_bao_data_user, room=f'user-{ma_nguoi_dung}', namespace='/thong-bao')
+            logger.debug(f'Sent thong_bao_moi to user-{ma_nguoi_dung}: {thong_bao_data_user}')
+
         event_data = {
             'ma_don_hang': new_don_hang.ma_don_hang,
             'ma_nguoi_dung': new_don_hang.ma_nguoi_dung,
@@ -144,8 +252,10 @@ def create_don_hang():
             'ngay_dat': new_don_hang.ngay_dat.astimezone(vn_tz).strftime('%Y-%m-%d %H:%M:%S')
         }
         emit('don_hang_moi', event_data, room='admin', namespace='/don-hang')
+        logger.debug(f'Sent don_hang_moi to admin: {event_data}')
         if ma_nguoi_dung:
             emit('don_hang_moi', event_data, room=f'user-{ma_nguoi_dung}', namespace='/don-hang')
+            logger.debug(f'Sent don_hang_moi to user-{ma_nguoi_dung}: {event_data}')
 
         return jsonify({
             'message': 'Tạo đơn hàng thành công',
@@ -153,6 +263,7 @@ def create_don_hang():
         }), 201
     except Exception as e:
         db.session.rollback()
+        logger.error(f'Error creating order: {str(e)}')
         return jsonify({'error': str(e)}), 400
 
 # Lấy danh sách đơn hàng
@@ -244,10 +355,11 @@ def update_don_hang(ma_don_hang):
         emit('cap_nhat_don_hang', event_data, room='admin', namespace='/don-hang')
         if don_hang.ma_nguoi_dung:
             emit('cap_nhat_don_hang', event_data, room=f'user-{don_hang.ma_nguoi_dung}', namespace='/don-hang')
-
+        logger.debug(f'Sent cap_nhat_don_hang for order {ma_don_hang}')
         return jsonify({'message': 'Cập nhật đơn hàng thành công'}), 200
     except Exception as e:
         db.session.rollback()
+        logger.error(f'Error updating order {ma_don_hang}: {str(e)}')
         return jsonify({'error': str(e)}), 400
 
 # Hủy đơn hàng
@@ -260,9 +372,56 @@ def cancel_don_hang(ma_don_hang):
         if don_hang.trang_thai != 'cho_xu_ly':
             return jsonify({'error': 'Chỉ có thể hủy đơn hàng đang chờ xử lý'}), 400
         don_hang.trang_thai = 'da_huy'
-        db.session.commit()
 
+        # Tạo thông báo cho admin và người dùng
+        admin = NguoiDung.query.filter_by(vai_tro='admin').first()
+        if not admin:
+            logger.error('Admin user not found')
+            raise Exception('Không tìm thấy người dùng admin')
+
+        thong_bao_admin = ThongBao(
+            ma_nguoi_dung=admin.ma_nguoi_dung,
+            ma_don_hang=ma_don_hang,
+            loai_thong_bao='huy_don'
+        )
+        db.session.add(thong_bao_admin)
+
+        if don_hang.ma_nguoi_dung:
+            thong_bao_user = ThongBao(
+                ma_nguoi_dung=don_hang.ma_nguoi_dung,
+                ma_don_hang=ma_don_hang,
+                loai_thong_bao='huy_don'
+            )
+            db.session.add(thong_bao_user)
+
+        db.session.commit()
+        logger.debug(f'Order {ma_don_hang} cancelled successfully')
+
+        # Gửi thông báo qua Socket.IO
         vn_tz = timezone(timedelta(hours=7))
+        thong_bao_data_admin = {
+            'ma_thong_bao': thong_bao_admin.ma_thong_bao,
+            'ma_don_hang': ma_don_hang,
+            'ma_nguoi_dung': thong_bao_admin.ma_nguoi_dung,
+            'loai_thong_bao': 'huy_don',
+            'da_doc': False,
+            'ngay_tao': thong_bao_admin.ngay_tao.astimezone(vn_tz).strftime('%Y-%m-%d %H:%M:%S')
+        }
+        emit('thong_bao_moi', thong_bao_data_admin, room='admin', namespace='/thong-bao')
+        logger.debug(f'Sent thong_bao_moi to admin for cancel: {thong_bao_data_admin}')
+
+        if don_hang.ma_nguoi_dung:
+            thong_bao_data_user = {
+                'ma_thong_bao': thong_bao_user.ma_thong_bao,
+                'ma_don_hang': ma_don_hang,
+                'ma_nguoi_dung': don_hang.ma_nguoi_dung,
+                'loai_thong_bao': 'huy_don',
+                'da_doc': False,
+                'ngay_tao': thong_bao_user.ngay_tao.astimezone(vn_tz).strftime('%Y-%m-%d %H:%M:%S')
+            }
+            emit('thong_bao_moi', thong_bao_data_user, room=f'user-{don_hang.ma_nguoi_dung}', namespace='/thong-bao')
+            logger.debug(f'Sent thong_bao_moi to user-{don_hang.ma_nguoi_dung} for cancel: {thong_bao_data_user}')
+
         event_data = {
             'ma_don_hang': don_hang.ma_don_hang,
             'ma_nguoi_dung': don_hang.ma_nguoi_dung,
@@ -274,10 +433,12 @@ def cancel_don_hang(ma_don_hang):
         emit('cap_nhat_don_hang', event_data, room='admin', namespace='/don-hang')
         if don_hang.ma_nguoi_dung:
             emit('cap_nhat_don_hang', event_data, room=f'user-{don_hang.ma_nguoi_dung}', namespace='/don-hang')
+        logger.debug(f'Sent cap_nhat_don_hang for order {ma_don_hang}')
 
         return jsonify({'message': 'Hủy đơn hàng thành công'}), 200
     except Exception as e:
         db.session.rollback()
+        logger.error(f'Error cancelling order {ma_don_hang}: {str(e)}')
         return jsonify({'error': str(e)}), 400
 
 # Xóa đơn hàng
@@ -287,7 +448,7 @@ def delete_don_hang(ma_don_hang):
         return jsonify({'error': 'Đơn hàng không tồn tại'}), 404
 
     try:
-        ma_nguoi_dung = don_hang.ma_nguoi_dung  # Store before deletion
+        ma_nguoi_dung = don_hang.ma_nguoi_dung
         db.session.delete(don_hang)
         db.session.commit()
 
@@ -298,10 +459,12 @@ def delete_don_hang(ma_don_hang):
         emit('xoa_don_hang', event_data, room='admin', namespace='/don-hang')
         if ma_nguoi_dung:
             emit('xoa_don_hang', event_data, room=f'user-{ma_nguoi_dung}', namespace='/don-hang')
+        logger.debug(f'Sent xoa_don_hang for order {ma_don_hang}')
 
         return jsonify({'message': 'Xóa đơn hàng thành công'}), 200
     except Exception as e:
         db.session.rollback()
+        logger.error(f'Error deleting order {ma_don_hang}: {str(e)}')
         return jsonify({'error': str(e)}), 400
 
 # Thêm chi tiết đơn hàng
@@ -355,10 +518,12 @@ def add_chi_tiet_don_hang(ma_don_hang):
         emit('cap_nhat_don_hang', event_data, room='admin', namespace='/don-hang')
         if don_hang.ma_nguoi_dung:
             emit('cap_nhat_don_hang', event_data, room=f'user-{don_hang.ma_nguoi_dung}', namespace='/don-hang')
+        logger.debug(f'Sent cap_nhat_don_hang for order detail addition: {ma_don_hang}')
 
         return jsonify({'message': 'Thêm chi tiết đơn hàng thành công'}), 201
     except Exception as e:
         db.session.rollback()
+        logger.error(f'Error adding order detail for order {ma_don_hang}: {str(e)}')
         return jsonify({'error': str(e)}), 400
 
 # Cập nhật chi tiết đơn hàng
@@ -404,10 +569,12 @@ def update_chi_tiet_don_hang(ma_chi_tiet):
         emit('cap_nhat_don_hang', event_data, room='admin', namespace='/don-hang')
         if don_hang.ma_nguoi_dung:
             emit('cap_nhat_don_hang', event_data, room=f'user-{don_hang.ma_nguoi_dung}', namespace='/don-hang')
+        logger.debug(f'Sent cap_nhat_don_hang for order detail update: {ma_chi_tiet}')
 
         return jsonify({'message': 'Cập nhật chi tiết đơn hàng thành công'}), 200
     except Exception as e:
         db.session.rollback()
+        logger.error(f'Error updating order detail {ma_chi_tiet}: {str(e)}')
         return jsonify({'error': str(e)}), 400
 
 # Xóa chi tiết đơn hàng
@@ -437,8 +604,10 @@ def delete_chi_tiet_don_hang(ma_chi_tiet):
         emit('cap_nhat_don_hang', event_data, room='admin', namespace='/don-hang')
         if don_hang.ma_nguoi_dung:
             emit('cap_nhat_don_hang', event_data, room=f'user-{don_hang.ma_nguoi_dung}', namespace='/don-hang')
+        logger.debug(f'Sent cap_nhat_don_hang for order detail deletion: {ma_chi_tiet}')
 
         return jsonify({'message': 'Xóa chi tiết đơn hàng thành công'}), 200
     except Exception as e:
         db.session.rollback()
+        logger.error(f'Error deleting order detail {ma_chi_tiet}: {str(e)}')
         return jsonify({'error': str(e)}), 400

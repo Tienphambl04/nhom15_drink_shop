@@ -4,6 +4,7 @@ from flask_socketio import SocketIO
 from database import db
 import os
 from controllers.don_hang_controller import handle_connect, handle_disconnect, handle_join
+from routes.thong_bao_routes import thong_bao_bp
 
 socketio = SocketIO(cors_allowed_origins="*")
 
@@ -41,14 +42,18 @@ def create_app():
 
     from routes.tuy_chon_routes import tuy_chon_bp
     app.register_blueprint(tuy_chon_bp, url_prefix='/api/tuy-chon')
+    from routes.thong_bao_routes import thong_bao_bp
+    app.register_blueprint(thong_bao_bp, url_prefix='/api/thong-bao')
 
     @app.route('/uploads/hinh_anh/<filename>')
     def serve_uploaded_file(filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-    # Register Socket.IO events
     socketio.on_event('connect', handle_connect, namespace='/don-hang')
     socketio.on_event('disconnect', handle_disconnect, namespace='/don-hang')
     socketio.on_event('join', handle_join, namespace='/don-hang')
+    socketio.on_event('connect', handle_connect, namespace='/thong-bao')
+    socketio.on_event('disconnect', handle_disconnect, namespace='/thong-bao')
+    socketio.on_event('join', handle_join, namespace='/thong-bao')
 
     return app

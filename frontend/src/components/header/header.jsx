@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { fetchDanhSachDanhMuc } from "../../api/danh_muc";
 import { useCart } from "../../components/gio_hang/cartContext";
+import { getThongBao } from "../../api/thongBao";
+import { initSocket, disconnectSocket } from "../../socket";
 import "./header.css";
 
 const Header = () => {
@@ -14,12 +16,15 @@ const Header = () => {
     vaiTro: localStorage.getItem("vai_tro") || "",
     maNguoiDung: localStorage.getItem("ma_nguoi_dung") || "guest",
   });
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
 
   const { cartCount, setCartCount, fetchCart } = useCart();
   const tenDangNhap = localStorage.getItem("ten_dang_nhap") || "User";
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
+  // Load categories
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -47,6 +52,7 @@ const Header = () => {
     loadCategories();
   }, []);
 
+  // Handle click outside for dropdown
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -57,9 +63,9 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Handle user login event
   useEffect(() => {
     const handleLoginEvent = async () => {
-      // Update auth state
       const newAuthState = {
         token: localStorage.getItem("token"),
         vaiTro: localStorage.getItem("vai_tro") || "",
@@ -69,7 +75,6 @@ const Header = () => {
 
       console.log('Header.js: userLogin event received, authState:', newAuthState);
 
-      // Fetch cart for non-admin users
       if (newAuthState.token && newAuthState.vaiTro !== "admin" && newAuthState.maNguoiDung !== "guest") {
         let attempts = 0;
         const maxAttempts = 3;
@@ -103,6 +108,7 @@ const Header = () => {
     return () => window.removeEventListener("userLogin", handleLoginEvent);
   }, [fetchCart, setCartCount, cartCount]);
 
+  // Load cart on auth change
   useEffect(() => {
     const loadCart = async () => {
       if (authState.token && authState.vaiTro !== "admin" && authState.maNguoiDung !== "guest") {
@@ -121,6 +127,80 @@ const Header = () => {
     loadCart();
   }, [authState.token, authState.maNguoiDung, authState.vaiTro, fetchCart, setCartCount]);
 
+  // Load notifications and handle WebSocket
+  useEffect(() => {
+    const loadNotifications = async () => {
+      if (authState.token && authState.vaiTro === "admin") {
+        try {
+          const notifications = await getThongBao({ ma_nguoi_dung: authState.maNguoiDung, da_doc: 0 });
+          setNotificationCount(notifications.length);
+          console.log('Header.js: Notifications loaded, count:', notifications.length);
+        } catch (err) {
+          console.error("Header.js: Lỗi khi lấy thông báo:", err);
+          setNotificationCount(0);
+        }
+      } else {
+        setNotificationCount(0);
+      }
+    };
+
+    loadNotifications();
+
+    if (authState.token && authState.vaiTro === "admin") {
+      const handleSocketEvent = (event, data) => {
+        console.log('Header.js: WebSocket event:', event, data);
+        if (event === 'thong_bao_moi' && (data.loai_thong_bao === 'dat_hang' || data.loai_thong_bao === 'huy_don')) {
+          setNotificationCount((prev) => {
+            const newCount = prev + 1;
+            console.log('Header.js: New notification, incremented count to:', newCount);
+            return newCount;
+          });
+        } else if (event === 'thong_bao_da_doc') {
+          setNotificationCount((prev) => {
+            const newCount = Math.max(prev - 1, 0);
+            console.log('Header.js: Notification marked as read, decremented count to:', newCount);
+            return newCount;
+          });
+        }
+      };
+
+      const socket = initSocket('admin', handleSocketEvent, '/thong-bao', {
+        onConnect: () => {
+          console.log('Header.js: WebSocket connected');
+          setIsSocketConnected(true);
+          loadNotifications(); // Sync notifications on connect
+        },
+        onDisconnect: () => {
+          console.log('Header.js: WebSocket disconnected');
+          setIsSocketConnected(false);
+        },
+        onError: (err) => {
+          console.error('Header.js: WebSocket error:', err);
+          setIsSocketConnected(false);
+        },
+        reconnectOptions: {
+          reconnection: true,
+          reconnectionAttempts: 10,
+          reconnectionDelay: 1000,
+        },
+      });
+
+      // Periodic fallback to fetch notifications
+      const intervalId = setInterval(() => {
+        if (!isSocketConnected) {
+          console.log('Header.js: WebSocket not connected, fetching notifications as fallback');
+          loadNotifications();
+        }
+      }, 5000);
+
+      return () => {
+        clearInterval(intervalId);
+        disconnectSocket('/thong-bao');
+        console.log('Header.js: WebSocket cleanup completed');
+      };
+    }
+  }, [authState.token, authState.vaiTro, authState.maNguoiDung]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("ten_dang_nhap");
@@ -130,11 +210,13 @@ const Header = () => {
     localStorage.removeItem("dia_chi");
     localStorage.removeItem("so_dien_thoai");
     setCartCount(0);
+    setNotificationCount(0);
     setAuthState({
       token: null,
       vaiTro: "",
       maNguoiDung: "guest",
     });
+    disconnectSocket('/thong-bao');
     navigate("/");
   };
 
@@ -284,6 +366,21 @@ const Header = () => {
                   </span>
                   <span className="cart-info">
                     <span className="cart-title">GIỎ HÀNG</span>
+                  </span>
+                </NavLink>
+              </div>
+            )}
+            {authState.token && authState.vaiTro === "admin" && (
+              <div className="notification">
+                <NavLink to="/admin/thong-bao">
+                  <span className="notification-icon-wrap">
+                    <i className="fas fa-bell" style={{ fontSize: "24px", color: "#333" }}></i>
+                    {notificationCount > 0 && (
+                      <span className="notification-count">{notificationCount}</span>
+                    )}
+                  </span>
+                  <span className="notification-info">
+                    <span className="notification-title">THÔNG BÁO</span>
                   </span>
                 </NavLink>
               </div>
