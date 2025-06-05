@@ -5,6 +5,8 @@ import { fetchDanhSachDanhMuc } from "../../api/danh_muc";
 import { fetchTuyChonByDoUong } from "../../api/tuyChon";
 import { addGioHang } from "../../api/gioHang";
 import { useCart } from "../../components/gio_hang/cartContext";
+import CommentSection from "./binhLuan";
+
 
 const HienThiDoUongTheoDanhMuc = () => {
   const { ma_danh_muc } = useParams();
@@ -20,7 +22,7 @@ const HienThiDoUongTheoDanhMuc = () => {
   const [selectedDrink, setSelectedDrink] = useState(null);
   const [drinkOptions, setDrinkOptions] = useState({});
   const [selectedOptions, setSelectedOptions] = useState({});
-  const [isBuyNow, setIsBuyNow] = useState(false); // Flag to differentiate between "Add to Cart" and "Buy Now"
+  const [isBuyNow, setIsBuyNow] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -41,7 +43,8 @@ const HienThiDoUongTheoDanhMuc = () => {
           setTenDanhMuc("Không xác định");
         }
       } catch (err) {
-        setError("Đã xảy ra lỗi khi gọi API");
+        setError("Đã xảy ra lỗi khi tải dữ liệu");
+        console.error("Lỗi khi tải dữ liệu:", err);
       } finally {
         setLoading(false);
       }
@@ -53,12 +56,12 @@ const HienThiDoUongTheoDanhMuc = () => {
   const doUongHienThi = dsDoUong.filter((d) => d.hien_thi);
 
   const handleThemGioHang = async (drink) => {
-    setIsBuyNow(false); // Set to false for "Add to Cart"
+    setIsBuyNow(false);
     await loadDrinkOptions(drink);
   };
 
   const handleBuyNow = async (drink) => {
-    setIsBuyNow(true); // Set to true for "Buy Now"
+    setIsBuyNow(true);
     await loadDrinkOptions(drink);
   };
 
@@ -110,8 +113,8 @@ const HienThiDoUongTheoDanhMuc = () => {
   const handleXacNhan = async () => {
     if (!selectedDrink) return;
 
-    const maNguoiDung = localStorage.getItem("ma_nguoi_dung");
     const token = localStorage.getItem("token");
+    const maNguoiDung = token ? localStorage.getItem("ma_nguoi_dung") : null;
 
     if (!maNguoiDung || !token) {
       alert("Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.");
@@ -128,7 +131,6 @@ const HienThiDoUongTheoDanhMuc = () => {
 
     try {
       if (isBuyNow) {
-        // For "Buy Now", store the item in localStorage and navigate to OrderForm
         const tempItem = {
           ma_do_uong: selectedDrink.ma_do_uong,
           ten_do_uong: selectedDrink.ten_do_uong,
@@ -137,14 +139,13 @@ const HienThiDoUongTheoDanhMuc = () => {
           tong_gia: tinhTongTien(),
         };
         localStorage.setItem("buyNowItem", JSON.stringify([tempItem]));
-        localStorage.removeItem("selectedCartItems"); // Clear cart items to avoid conflicts
+        localStorage.removeItem("selectedCartItems");
         setShowModal(false);
         setSelectedOptions({});
         setSelectedDrink(null);
         setDrinkOptions({});
         navigate("/don-hang");
       } else {
-        // For "Add to Cart", call the addGioHang API
         const result = await addGioHang({
           ma_nguoi_dung: Number(maNguoiDung),
           ma_do_uong: selectedDrink.ma_do_uong,
@@ -213,39 +214,42 @@ const HienThiDoUongTheoDanhMuc = () => {
 
           return (
             <div key={d.ma_do_uong} className="drink-item">
-              <h3>{d.ten_do_uong}</h3>
-              <p>Giá gốc: {Number(d.gia).toLocaleString()} VNĐ</p>
-              <p>Giảm giá: {d.giam_gia_phan_tram || 0}%</p>
-              <p>Mô tả: {d.mo_ta}</p>
-              {d.hinh_anh && (
-                <img
-                  src={`http://localhost:5000/uploads/hinh_anh/${d.hinh_anh}`}
-                  alt={d.ten_do_uong}
-                  style={{ width: 150, height: 120, objectFit: "cover" }}
-                />
-              )}
-              {d.giam_gia_phan_tram > 0 && (
-                <p style={{ fontWeight: "bold", color: "red" }}>
-                  Giá sau giảm: {giaGiam.toLocaleString()} VNĐ
-                </p>
-              )}
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button onClick={() => handleThemGioHang(d)}>
-                  Thêm vào giỏ hàng
-                </button>
-                <button
-                  onClick={() => handleBuyNow(d)}
-                  style={{
-                    backgroundColor: "#4CAF50",
-                    color: "white",
-                    padding: "8px 16px",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Mua ngay
-                </button>
+              <div className="drink-content">
+                <div className="drink-details">
+                  <h3>{d.ten_do_uong}</h3>
+                  {d.hinh_anh && (
+                    <img
+                      src={`http://localhost:5000/uploads/hinh_anh/${d.hinh_anh}`}
+                      alt={d.ten_do_uong}
+                      className="drink-image"
+                    />
+                  )}
+                  <p>
+                    <strong>Giá gốc:</strong> {Number(d.gia).toLocaleString()} VNĐ
+                  </p>
+                  {d.giam_gia_phan_tram > 0 && (
+                    <p>
+                      <strong>Giảm giá:</strong> {d.giam_gia_phan_tram}%{' '}
+                      <span style={{ color: "red" }}>
+                        (Giá sau giảm: {giaGiam.toLocaleString()} VNĐ)
+                      </span>
+                    </p>
+                  )}
+                  <p>
+                    <strong>Mô tả:</strong> {d.mo_ta || "Không có mô tả"}
+                  </p>
+                  <div className="drink-actions">
+                    <button onClick={() => handleThemGioHang(d)}>
+                      Thêm vào giỏ hàng
+                    </button>
+                    <button className="buy-now" onClick={() => handleBuyNow(d)}>
+                      Mua ngay
+                    </button>
+                  </div>
+                </div>
+                <div className="drink-comments">
+                  <CommentSection maDoUong={d.ma_do_uong} />
+                </div>
               </div>
             </div>
           );
@@ -253,43 +257,21 @@ const HienThiDoUongTheoDanhMuc = () => {
       </div>
 
       {showModal && selectedDrink && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-            transition: "opacity 0.3s ease",
-          }}
-        >
-          <div
-            style={{
-              background: "white",
-              padding: "20px",
-              borderRadius: "8px",
-              width: "400px",
-              maxWidth: "90%",
-            }}
-          >
+        <div className="modal-overlay">
+          <div className="modal-content">
             <h3>
               {isBuyNow ? "Mua ngay" : "Thêm vào giỏ hàng"}: {selectedDrink.ten_do_uong}
             </h3>
 
             {Object.entries(drinkOptions).map(([loai, opts]) => (
-              <div key={loai} style={{ marginBottom: "10px" }}>
+              <div key={loai} className="option-group">
                 <p>
                   <strong>{loai}</strong>
                 </p>
                 {opts.map((opt) => (
                   <label
                     key={opt.id || `${loai}-${opt.gia_tri}`}
-                    style={{ display: "block", margin: "5px 0" }}
+                    className="option-label"
                   >
                     <input
                       type="radio"
@@ -304,36 +286,21 @@ const HienThiDoUongTheoDanhMuc = () => {
               </div>
             ))}
 
-            <div style={{ marginTop: "10px" }}>
+            <div className="total-price">
               <p>Tổng tiền: {tinhTongTien().toLocaleString()} VNĐ</p>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
+            <div className="modal-actions">
               <button
                 onClick={() => {
                   setShowModal(false);
                   setSelectedOptions({});
                 }}
-                style={{
-                  padding: "8px 16px",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
+                className="cancel-button"
               >
                 Hủy
               </button>
-              <button
-                onClick={handleXacNhan}
-                style={{
-                  padding: "8px 16px",
-                  background: "#007bff",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
+              <button onClick={handleXacNhan} className="confirm-button">
                 {isBuyNow ? "Xác nhận mua" : "Thêm vào giỏ hàng"}
               </button>
             </div>

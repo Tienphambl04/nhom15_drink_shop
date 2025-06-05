@@ -16,7 +16,7 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'your_secret_key_here'
 
-    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'uploads', 'hinh_anh')
+    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'Uploads', 'hinh_anh')
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     db.init_app(app)
@@ -42,10 +42,14 @@ def create_app():
 
     from routes.tuy_chon_routes import tuy_chon_bp
     app.register_blueprint(tuy_chon_bp, url_prefix='/api/tuy-chon')
+
     from routes.thong_bao_routes import thong_bao_bp
     app.register_blueprint(thong_bao_bp, url_prefix='/api/thong-bao')
 
-    @app.route('/uploads/hinh_anh/<filename>')
+    from routes.binh_luan_routes import binh_luan_bp
+    app.register_blueprint(binh_luan_bp, url_prefix='/api/binh-luan')
+
+    @app.route('/Uploads/hinh_anh/<filename>')
     def serve_uploaded_file(filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
@@ -55,5 +59,8 @@ def create_app():
     socketio.on_event('connect', handle_connect, namespace='/thong-bao')
     socketio.on_event('disconnect', handle_disconnect, namespace='/thong-bao')
     socketio.on_event('join', handle_join, namespace='/thong-bao')
+    socketio.on_event('connect', handle_connect, namespace='/binh-luan')
+    socketio.on_event('disconnect', handle_disconnect, namespace='/binh-luan')
+    socketio.on_event('join', handle_join, namespace='/binh-luan')
 
     return app
