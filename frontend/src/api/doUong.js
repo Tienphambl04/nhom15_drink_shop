@@ -1,5 +1,3 @@
-// src/api/doUong.js
-
 const API_BASE = 'http://localhost:5000/api/do-uong'; 
 
 // Lấy danh sách đồ uống theo danh mục
@@ -9,6 +7,7 @@ export async function getDoUongTheoDanhMuc(maDanhMuc) {
   const data = await res.json();
   return data.data; // mảng đồ uống
 }
+
 // Lấy thông tin đồ uống theo ID
 export async function getDoUongTheoId(maDoUong) {
   const res = await fetch(`${API_BASE}/${maDoUong}`);
@@ -58,9 +57,29 @@ export async function xoaDoUong(maDoUong) {
   return await res.json();
 } 
 
+// Lấy danh sách tất cả đồ uống
 export const layDanhSachDoUong = async () => {
   const res = await fetch(`${API_BASE}`);
   if (!res.ok) throw new Error(`Lấy danh sách đồ uống thất bại`);
   return res.json();
 };
 
+// Tìm kiếm đồ uống theo tên (gần đúng)
+export const searchDoUong = async (query) => {
+  try {
+    const drinks = await layDanhSachDoUong();
+    if (!Array.isArray(drinks)) {
+      throw new Error('Dữ liệu đồ uống không hợp lệ');
+    }
+    if (!query.trim()) {
+      return [];
+    }
+    const normalizedQuery = query.toLowerCase().trim();
+    return drinks.filter(drink =>
+      drink.ten_do_uong.toLowerCase().includes(normalizedQuery)
+    );
+  } catch (error) {
+    console.error('Lỗi khi tìm kiếm đồ uống:', error);
+    throw new Error(error.message || 'Tìm kiếm đồ uống thất bại');
+  }
+};

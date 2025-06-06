@@ -4,6 +4,7 @@ import { fetchDanhSachDanhMuc } from "../../api/danh_muc";
 import { useCart } from "../../components/gio_hang/cartContext";
 import { getThongBao } from "../../api/thongBao";
 import { initSocket, disconnectSocket } from "../../socket";
+import { searchDoUong } from "../../api/doUong";
 import "./header.css";
 
 const Header = () => {
@@ -18,11 +19,15 @@ const Header = () => {
   });
   const [notificationCount, setNotificationCount] = useState(0);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
 
   const { cartCount, setCartCount, fetchCart } = useCart();
   const tenDangNhap = localStorage.getItem("ten_dang_nhap") || "User";
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
+  const searchDropdownRef = useRef(null);
 
   // Load categories
   useEffect(() => {
@@ -52,16 +57,41 @@ const Header = () => {
     loadCategories();
   }, []);
 
-  // Handle click outside for dropdown
+  // Handle click outside for user and search dropdowns
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdown(false);
       }
+      if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) {
+        setIsSearchDropdownOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Handle search input
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.trim()) {
+        try {
+          const results = await searchDoUong(searchQuery);
+          setSearchResults(results);
+          setIsSearchDropdownOpen(true);
+        } catch (err) {
+          console.error("Lỗi tìm kiếm:", err);
+          setSearchResults([]);
+          setIsSearchDropdownOpen(false);
+        }
+      } else {
+        setSearchResults([]);
+        setIsSearchDropdownOpen(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   // Handle user login event
   useEffect(() => {
@@ -168,7 +198,7 @@ const Header = () => {
         onConnect: () => {
           console.log('Header.js: WebSocket connected');
           setIsSocketConnected(true);
-          loadNotifications(); // Sync notifications on connect
+          loadNotifications();
         },
         onDisconnect: () => {
           console.log('Header.js: WebSocket disconnected');
@@ -185,7 +215,6 @@ const Header = () => {
         },
       });
 
-      // Periodic fallback to fetch notifications
       const intervalId = setInterval(() => {
         if (!isSocketConnected) {
           console.log('Header.js: WebSocket not connected, fetching notifications as fallback');
@@ -220,6 +249,22 @@ const Header = () => {
     navigate("/");
   };
 
+  const handleSearchInputChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearchResultClick = (drink) => {
+    if (drink.ma_danh_muc) {
+      navigate(`/danh-muc/${encodeURIComponent(drink.ma_danh_muc)}`);
+      setSearchQuery("");
+      setSearchResults([]);
+      setIsSearchDropdownOpen(false);
+    } else {
+      console.error("ma_danh_muc không tồn tại:", drink);
+      alert("Không tìm thấy danh mục cho sản phẩm này");
+    }
+  };
+
   return (
     <header className="header">
       <div className="header-top">
@@ -229,11 +274,35 @@ const Header = () => {
             <span>Hotline: 1900 6750</span>
           </div>
           <div className="search-bar">
-            <div className="search-box">
-              <input type="text" id="searchInput" placeholder="Tìm sản phẩm" />
+            <div className="search-box" ref={searchDropdownRef}>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Tìm sản phẩm"
+                value={searchQuery}
+                onChange={handleSearchInputChange}
+              />
               <button className="search-btn" id="searchBtn">
                 <i className="fas fa-search"></i>
               </button>
+              {isSearchDropdownOpen && searchResults.length > 0 && (
+                <ul className="search-dropdown">
+                  {searchResults.map((drink) => (
+                    <li
+                      key={drink.ma_do_uong}
+                      onClick={() => handleSearchResultClick(drink)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {drink.ten_do_uong}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {isSearchDropdownOpen && searchQuery.trim() && searchResults.length === 0 && (
+                <ul className="search-dropdown">
+                  <li>Không tìm thấy sản phẩm</li>
+                </ul>
+              )}
             </div>
             <div className="auth-box">
               {authState.token ? (

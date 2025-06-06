@@ -124,7 +124,13 @@ def sua_do_uong(ma_do_uong):
 def lay_danh_sach_do_uong():
     try:
         ds = DoUong.query.filter_by(hien_thi=True).all()
-        result = [{"ma_do_uong": d.ma_do_uong, "ten_do_uong": d.ten_do_uong} for d in ds]
+        result = [{
+            "ma_do_uong": d.ma_do_uong, 
+            "ten_do_uong": d.ten_do_uong,
+            "ma_danh_muc": d.ma_danh_muc,  # Thêm dòng này
+            "gia": float(d.gia),
+            "hinh_anh": d.hinh_anh
+        } for d in ds]
         return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
