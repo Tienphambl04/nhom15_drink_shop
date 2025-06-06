@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getDoUongTheoDanhMuc } from "../../api/doUong";
@@ -6,7 +7,6 @@ import { fetchTuyChonByDoUong } from "../../api/tuyChon";
 import { addGioHang } from "../../api/gioHang";
 import { useCart } from "../../components/gio_hang/cartContext";
 import CommentSection from "./binhLuan";
-
 
 const HienThiDoUongTheoDanhMuc = () => {
   const { ma_danh_muc } = useParams();
@@ -31,6 +31,7 @@ const HienThiDoUongTheoDanhMuc = () => {
         setError(null);
 
         const dataDoUong = await getDoUongTheoDanhMuc(ma_danh_muc);
+        console.log("Drink images:", dataDoUong.map(d => d.hinh_anh));
         setDsDoUong(dataDoUong);
 
         const resDanhMuc = await fetchDanhSachDanhMuc();
@@ -217,12 +218,15 @@ const HienThiDoUongTheoDanhMuc = () => {
               <div className="drink-content">
                 <div className="drink-details">
                   <h3>{d.ten_do_uong}</h3>
-                  {d.hinh_anh && (
+                  {d.hinh_anh ? (
                     <img
-                      src={`http://localhost:5000/uploads/hinh_anh/${d.hinh_anh}`}
+                      src={`http://localhost:5000/Uploads/hinh_anh/${d.hinh_anh}`}
                       alt={d.ten_do_uong}
-                      className="drink-image"
+                      style={{ width: '150px', height: '120px', objectFit: 'cover' }}
+                      onError={(e) => console.error(`Failed to load image: ${e.target.src}`)}
                     />
+                  ) : (
+                    <p>Không có hình ảnh</p>
                   )}
                   <p>
                     <strong>Giá gốc:</strong> {Number(d.gia).toLocaleString()} VNĐ

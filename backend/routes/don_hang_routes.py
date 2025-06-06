@@ -8,7 +8,8 @@ from controllers.don_hang_controller import (
     delete_don_hang,
     add_chi_tiet_don_hang,
     update_chi_tiet_don_hang,
-    delete_chi_tiet_don_hang
+    delete_chi_tiet_don_hang,
+    get_top_drinks
 )
 
 don_hang_bp = Blueprint('don_hang', __name__)
@@ -22,3 +23,4 @@ don_hang_bp.route('/<int:ma_don_hang>', methods=['DELETE'])(delete_don_hang)
 don_hang_bp.route('/<int:ma_don_hang>/chi-tiet', methods=['POST'])(add_chi_tiet_don_hang)
 don_hang_bp.route('/chi-tiet/<int:ma_chi_tiet>', methods=['PUT'])(update_chi_tiet_don_hang)
 don_hang_bp.route('/chi-tiet/<int:ma_chi_tiet>', methods=['DELETE'])(delete_chi_tiet_don_hang)
+don_hang_bp.route('/do-uong/top-drinks', methods=['GET'])(get_top_drinks)

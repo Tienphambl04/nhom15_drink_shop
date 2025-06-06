@@ -57,3 +57,10 @@ export async function xoaDoUong(maDoUong) {
   }
   return await res.json();
 } 
+
+export const layDanhSachDoUong = async () => {
+  const res = await fetch(`${API_BASE}`);
+  if (!res.ok) throw new Error(`Lấy danh sách đồ uống thất bại`);
+  return res.json();
+};
+

@@ -10,6 +10,10 @@ import ThemDoUong from './components/danh_muc/ThemDoUong';
 import AddDrinkOptionForm from './components/danh_muc/tuyChonToping';
 import OrderAdminfrom  from './components/don_hang/orderAdmin';
 import ThongBao from './components/don_hang/thongBao';
+import AdminBlogList from './components/admin/blog/adminblogList';
+import BlogForm from './components/admin/blog/blogForm';
+import ContactList from './components/admin/contact/contactList';
+
 // import BlogList from './pages/admin/BlogList';
 // import AddBlog from './pages/admin/AddBlog';
 // import OrderList from './pages/admin/OrderList';
@@ -28,10 +32,9 @@ function AdminRoutes() {
         <Route path="tuy-chon/add" element={<AddDrinkOptionForm />} />
         <Route path="don-hang" element={<OrderAdminfrom />} />
         <Route path="thong-bao" element={<ThongBao />} />
-        {/* <Route path="blogs" element={<BlogList />} />
-        <Route path="blogs/add" element={<AddBlog />} />
-
-        <Route path="contacts" element={<ContactList />} /> */}
+        <Route path="blogs" element={<AdminBlogList />} />
+        <Route path="blogs/add" element={<BlogForm />} />
+        <Route path="contacts" element={<ContactList />} />
       </Route>
     </Routes>
   );

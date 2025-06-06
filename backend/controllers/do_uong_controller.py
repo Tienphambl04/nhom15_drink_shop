@@ -120,3 +120,11 @@ def sua_do_uong(ma_do_uong):
 
     db.session.commit()
     return jsonify({"success": True, "message": "Cập nhật thành công"})
+
+def lay_danh_sach_do_uong():
+    try:
+        ds = DoUong.query.filter_by(hien_thi=True).all()
+        result = [{"ma_do_uong": d.ma_do_uong, "ten_do_uong": d.ten_do_uong} for d in ds]
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

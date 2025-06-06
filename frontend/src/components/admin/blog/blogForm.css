@@ -1,0 +1,69 @@
+.blog-form {
+  max-width: 600px;
+  margin: 1.5rem auto;
+  padding: 1.5rem 2rem;
+  background-color: #fafafa;
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.blog-form label {
+  display: block;
+  margin-bottom: 1.2rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.blog-form input[type="text"],
+.blog-form input[type="number"],
+.blog-form select,
+.blog-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 0.3rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.blog-form textarea {
+  min-height: 120px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: normal;
+  margin-top: -0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.blog-form input[type="file"] {
+  margin-top: 0.3rem;
+}
+
+.blog-form button {
+  width: 100%;
+  padding: 12px 0;
+  font-size: 18px;
+  font-weight: 700;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+}
+
+.blog-form button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.blog-form button:hover:not(:disabled) {
+  background-color: #0056b3;
+}

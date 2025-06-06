@@ -1,6 +1,8 @@
+
 import React, { useEffect, useState } from 'react';
 import { fetchDanhSachDanhMuc, suaDanhMuc, xoaDanhMuc } from '../../api/danh_muc';
 import { getDoUongTheoDanhMuc, suaDoUong, xoaDoUong } from '../../api/doUong';
+
 
 export default function QuanLyDanhMucVaDoUong() {
   const [danhMuc, setDanhMuc] = useState([]);
@@ -34,7 +36,10 @@ export default function QuanLyDanhMucVaDoUong() {
       return;
     }
     getDoUongTheoDanhMuc(danhMucChon)
-      .then(ds => setDoUong(ds))
+      .then(ds => {
+        console.log(`Drink images for category ${danhMucChon}:`, ds.map(d => d.hinh_anh));
+        setDoUong(ds);
+      })
       .catch(err => alert('Lỗi lấy đồ uống: ' + err.message));
   }, [danhMucChon]);
 
@@ -161,39 +166,37 @@ export default function QuanLyDanhMucVaDoUong() {
   }
 
   return (
-    <div style={{ display: 'flex', gap: 30 }}>
+    <div className="container">
       {/* Danh mục */}
-      <div style={{ flex: '1 1 300px' }}>
+      <div className="category-section">
         <h2>Danh sách danh mục</h2>
-        <ul>
+        <ul className="category-list">
           {danhMuc.map(dm => (
             <li
               key={dm.ma_danh_muc}
-              style={{
-                cursor: 'pointer',
-                backgroundColor: danhMucChon === dm.ma_danh_muc ? '#d0f0fd' : 'transparent',
-                padding: '8px',
-                borderRadius: 4,
-              }}
+              className={`category-item ${danhMucChon === dm.ma_danh_muc ? 'selected' : ''}`}
               onClick={() => setDanhMucChon(dm.ma_danh_muc)}
             >
               {editingId === dm.ma_danh_muc ? (
-                <>
+                <div className="edit-form">
                   <input
                     type="text"
                     value={tenMoi}
                     onChange={e => setTenMoi(e.target.value)}
                     placeholder="Tên danh mục mới"
+                    className="input"
                   />
-                  <button onClick={() => handleSuaDanhMuc(dm.ma_danh_muc)}>Lưu</button>
-                  <button onClick={() => { setEditingId(null); setTenMoi(''); }}>Hủy</button>
-                </>
+                  <button className="save-button" onClick={() => handleSuaDanhMuc(dm.ma_danh_muc)}>Lưu</button>
+                  <button className="cancel-button" onClick={() => { setEditingId(null); setTenMoi(''); }}>Hủy</button>
+                </div>
               ) : (
-                <>
-                  {dm.ten_danh_muc}{' '}
-                  <button onClick={e => { e.stopPropagation(); setEditingId(dm.ma_danh_muc); setTenMoi(dm.ten_danh_muc); }}>Sửa</button>
-                  <button onClick={e => { e.stopPropagation(); handleXoaDanhMuc(dm.ma_danh_muc); }}>Xóa</button>
-                </>
+                <div className="category-content">
+                  {dm.ten_danh_muc}
+                  <div className="actions">
+                    <button className="edit-button" onClick={e => { e.stopPropagation(); setEditingId(dm.ma_danh_muc); setTenMoi(dm.ten_danh_muc); }}>Sửa</button>
+                    <button className="delete-button" onClick={e => { e.stopPropagation(); handleXoaDanhMuc(dm.ma_danh_muc); }}>Xóa</button>
+                  </div>
+                </div>
               )}
             </li>
           ))}
@@ -201,26 +204,28 @@ export default function QuanLyDanhMucVaDoUong() {
       </div>
 
       {/* Đồ uống */}
-      <div style={{ flex: '2 1 600px' }}>
+      <div className="drink-section">
         <h2>Đồ uống trong danh mục: {danhMuc.find(dm => dm.ma_danh_muc === danhMucChon)?.ten_danh_muc || 'Chưa chọn'}</h2>
-        {!danhMucChon && <p>Vui lòng chọn danh mục bên trái để xem đồ uống.</p>}
+        {!danhMucChon && <p className="no-selection">Vui lòng chọn danh mục bên trái để xem đồ uống.</p>}
 
-        <ul>
+        <ul className="drink-list">
           {doUong.map(d => (
-            <li key={d.ma_do_uong} style={{ marginBottom: 20, borderBottom: '1px solid #ccc', paddingBottom: 10 }}>
+            <li key={d.ma_do_uong} className="drink-item">
               {editingDoUongId === d.ma_do_uong ? (
-                <>
+                <div className="edit-form">
                   <input
                     type="text"
                     value={doUongMoi.ten_do_uong}
                     onChange={e => setDoUongMoi({ ...doUongMoi, ten_do_uong: e.target.value })}
                     placeholder="Tên đồ uống"
+                    className="input"
                   />
                   <input
                     type="number"
                     value={doUongMoi.gia}
                     onChange={e => setDoUongMoi({ ...doUongMoi, gia: e.target.value })}
                     placeholder="Giá"
+                    className="input"
                   />
                   <input
                     type="number"
@@ -229,14 +234,16 @@ export default function QuanLyDanhMucVaDoUong() {
                     placeholder="Giảm giá %"
                     min="0"
                     max="100"
+                    className="input"
                   />
                   <input
                     type="text"
                     value={doUongMoi.mo_ta}
                     onChange={e => setDoUongMoi({ ...doUongMoi, mo_ta: e.target.value })}
                     placeholder="Mô tả"
+                    className="input"
                   />
-                  <label>
+                  <label className="checkbox-label">
                     Hiển thị:
                     <input
                       type="checkbox"
@@ -244,39 +251,57 @@ export default function QuanLyDanhMucVaDoUong() {
                       onChange={e => setDoUongMoi({ ...doUongMoi, hien_thi: e.target.checked })}
                     />
                   </label>
-                  <br />
-                  <label>
-                    Ảnh mới:
+                  <label className="file-label">
+                    Ảnh hiện tại:
+                    {d.hinh_anh ? (
+                      <img
+                        src={`http://localhost:5000/Uploads/hinh_anh/${d.hinh_anh}`}
+                        alt={d.ten_do_uong}
+                        style={{ width: '150px', height: '120px', objectFit: 'cover', marginTop: '10px', borderRadius: '4px' }}
+                        onError={(e) => console.error(`Failed to load drink image: ${e.target.src}`)}
+                      />
+                    ) : (
+                      <p>Không có hình ảnh</p>
+                    )}
+                  </label>
+                  <label className="file-label">
+                    Chọn ảnh mới:
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleChangeFile}
                     />
                   </label>
-                  <br />
-                  <button onClick={() => handleSaveDoUong(d.ma_do_uong)}>Lưu</button>
-                  <button onClick={handleCancelEditDoUong}>Hủy</button>
-                </>
+                  <div className="actions">
+                    <button className="save-button" onClick={() => handleSaveDoUong(d.ma_do_uong)}>Lưu</button>
+                    <button className="cancel-button" onClick={handleCancelEditDoUong}>Hủy</button>
+                  </div>
+                </div>
               ) : (
-                <>
+                <div className="drink-content">
                   <h3>{d.ten_do_uong}</h3>
                   <p>Giá: {Number(d.gia).toLocaleString()} VNĐ</p>
                   <p>Giảm giá: {d.giam_gia_phan_tram || 0}%</p>
-                  <p style={{ color: 'red', fontWeight: 'bold' }}>
+                  <p className="final-price">
                     Giá bán: {(d.gia * (1 - (d.giam_gia_phan_tram || 0) / 100)).toLocaleString()} VNĐ
                   </p>
                   <p>Mô tả: {d.mo_ta}</p>
-                  {d.hinh_anh && (
+                  {d.hinh_anh ? (
                     <img
-                      src={`http://localhost:5000/uploads/hinh_anh/${d.hinh_anh}`}
+                      src={`http://localhost:5000/Uploads/hinh_anh/${d.hinh_anh}`}
                       alt={d.ten_do_uong}
-                      style={{ width: 150, marginTop: 10 }}
+                      style={{ width: '150px', height: '120px', objectFit: 'cover', marginTop: '10px', borderRadius: '4px' }}
+                      onError={(e) => console.error(`Failed to load drink image: ${e.target.src}`)}
                     />
+                  ) : (
+                    <p>Không có hình ảnh</p>
                   )}
                   <p>Hiển thị: {d.hien_thi ? 'Có' : 'Không'}</p>
-                  <button onClick={() => handleEditDoUong(d)}>Sửa</button>
-                  <button onClick={() => handleDeleteDoUong(d.ma_do_uong)}>Xóa</button>
-                </>
+                  <div className="actions">
+                    <button className="edit-button" onClick={() => handleEditDoUong(d)}>Sửa</button>
+                    <button className="delete-button" onClick={() => handleDeleteDoUong(d.ma_do_uong)}>Xóa</button>
+                  </div>
+                </div>
               )}
             </li>
           ))}

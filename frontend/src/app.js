@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './components/mainLayout';
+import HomePage from './pages/home';
 import Register from './components/login/register';
 import Login from './components/login/login';
 import ChangePassword from './components/header/changePassword';
@@ -11,6 +12,9 @@ import HienThiDoUongTheoDanhMuc from './components/danh_muc/danhMuc_khach';
 import GioHang from './components/gio_hang/gioHang';
 import OrderForm from './components/don_hang/orderForm';
 import OrderHistory from './components/don_hang/orderHistory';
+import ContactPage from './components/contact/contactPage';
+import BlogList from './components/blog/blogList';
+import About from './pages/gioiThieu';
 
 function App() {
   return (
@@ -20,6 +24,7 @@ function App() {
           path="/"
           element={
             <MainLayout>
+              <HomePage />
             </MainLayout>
           }
         />
@@ -30,6 +35,28 @@ function App() {
               <Register />
             </MainLayout>
           }
+        />
+        <Route
+          path="/about"
+          element={
+            <MainLayout>
+              <About />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/contact" element={
+            <MainLayout>
+            <ContactPage />
+            </MainLayout>
+            }
+        />
+        <Route
+          path="/blog" element={
+            <MainLayout>
+            <BlogList />
+            </MainLayout>
+            }
         />
         <Route
           path="/login"

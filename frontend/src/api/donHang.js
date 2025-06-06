@@ -213,3 +213,27 @@ export async function deleteChiTietDonHang(maChiTiet) {
     throw new Error(error.message || 'Lỗi hệ thống khi xóa chi tiết đơn hàng');
   }
 }
+
+/**
+ * Lấy danh sách đồ uống bán chạy nhất
+ * @param {Object} params - { limit }
+ * @returns {Promise<Array>} - Danh sách đồ uống bán chạy
+ */
+export async function getTopDrinks(params = {}) {
+  try {
+    const query = new URLSearchParams(params).toString();
+    console.log(`Fetching top drinks with query: ${query}`); // Debug query
+    const res = await fetch(`${API_BASE}/do-uong/top-drinks?${query}`, {
+      headers: getHeaders(false),
+    });
+    const result = await res.json();
+    console.log('Top drinks response:', result); // Debug response
+    if (!res.ok) {
+      throw new Error(result.error || 'Lấy danh sách đồ uống bán chạy thất bại');
+    }
+    return result;
+  } catch (error) {
+    console.error('Error fetching top drinks:', error.message); // Debug error
+    throw new Error(error.message || 'Lỗi hệ thống khi lấy danh sách đồ uống bán chạy');
+  }
+}

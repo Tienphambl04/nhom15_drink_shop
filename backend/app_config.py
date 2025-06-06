@@ -50,6 +50,12 @@ def create_app():
     from routes.binh_luan_routes import binh_luan_bp
     app.register_blueprint(binh_luan_bp, url_prefix='/api/binh-luan')
 
+    from routes.contact_routes import lien_he_bp
+    app.register_blueprint(lien_he_bp, url_prefix = '/api/lien-he')
+
+    from routes.blog_routes import blog_bp
+    app.register_blueprint(blog_bp,url_prefix = '/api/blog')
+
     @app.route('/Uploads/hinh_anh/<filename>')
     def serve_uploaded_file(filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)

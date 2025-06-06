@@ -611,3 +611,54 @@ def delete_chi_tiet_don_hang(ma_chi_tiet):
         db.session.rollback()
         logger.error(f'Error deleting order detail {ma_chi_tiet}: {str(e)}')
         return jsonify({'error': str(e)}), 400
+
+# Lấy danh sách đồ uống bán chạy nhất
+def get_top_drinks():
+    try:
+        limit = int(request.args.get('limit', 10))
+        if limit <= 0:
+            return jsonify({'error': 'Giới hạn phải là số dương'}), 400
+
+        logger.debug(f'Fetching top {limit} drinks')
+
+        # Truy vấn để lấy danh sách đồ uống được bán nhiều nhất
+        top_drinks = db.session.query(
+            ChiTietDonHang.ma_do_uong,
+            DoUong.ten_do_uong,
+            DoUong.gia,
+            DoUong.giam_gia_phan_tram,
+            DoUong.hinh_anh,
+            db.func.sum(ChiTietDonHang.so_luong).label('total_quantity')
+        ).join(
+            DoUong, ChiTietDonHang.ma_do_uong == DoUong.ma_do_uong
+        ).group_by(
+            ChiTietDonHang.ma_do_uong,
+            DoUong.ten_do_uong,
+            DoUong.gia,
+            DoUong.giam_gia_phan_tram,
+            DoUong.hinh_anh
+        ).order_by(
+            db.func.sum(ChiTietDonHang.so_luong).desc()
+        ).limit(limit).all()
+
+        if not top_drinks:
+            logger.info('No top drinks found, returning empty list')
+            return jsonify([]), 200
+
+        result = [{
+            'ma_do_uong': drink.ma_do_uong,
+            'ten_do_uong': drink.ten_do_uong,
+            'gia': float(drink.gia),
+            'giam_gia_phan_tram': float(drink.giam_gia_phan_tram or 0),
+            'hinh_anh': drink.hinh_anh,
+            'total_quantity': int(drink.total_quantity)
+        } for drink in top_drinks]
+
+        logger.debug(f'Fetched top {limit} drinks: {result}')
+        return jsonify(result), 200
+    except ValueError as ve:
+        logger.error(f'Invalid limit parameter: {str(ve)}')
+        return jsonify({'error': 'Giới hạn không hợp lệ'}), 400
+    except Exception as e:
+        logger.error(f'Error fetching top drinks: {str(e)}', exc_info=True)
+        return jsonify({'error': 'Lỗi hệ thống khi lấy danh sách đồ uống bán chạy'}), 500
