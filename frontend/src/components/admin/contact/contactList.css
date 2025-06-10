@@ -1,58 +1,231 @@
+/* Container cho danh sách */
 .contact-list-container {
-  padding: 2rem;
-  max-width: 1000px;
-  margin: auto;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9fafb;
+  min-height: 100vh;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
+/* Animation fadeIn */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tiêu đề */
 .contact-list-container h2 {
   text-align: center;
-  margin-bottom: 20px;
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 30px;
+  animation: slideDown 0.5s ease-in-out;
 }
 
+/* Animation slideDown */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 12px 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.filter-bar label {
+  font-size: 1rem;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.filter-bar select {
+  padding: 10px 15px;
+  font-size: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.3s ease;
+  color: #2d3748;
+}
+
+.filter-bar select:focus {
+  /* Light orange */
+  box-shadow: 0 0 0 3px rgba(255, 126, 95, 0.1);
+}
+
+/* Dropdown Styles */
+.filter-dropdown {
+  padding: 10px 15px;
+  font-size: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.3s ease;
+  color: #431407; /* Dark orange */
+}
+
+
+
+/* Table */
 .contact-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 2rem;
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .contact-table th,
 .contact-table td {
-  border: 1px solid #ccc;
-  padding: 10px;
+  padding: 15px;
   text-align: left;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .contact-table th {
-  background-color: #f0f0f0;
+  background-color: #f3f4f6;
+  color: #1f2937;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.contact-table tr {
+  transition: all 0.3s ease;
 }
 
 .contact-table tr:hover {
-  background-color: #f9f9f9;
-  cursor: pointer;
+  background-color: #f9fafb;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.chua-doc {
-  font-weight: bold;
-  background-color: #fff9e6;
+.contact-table tr.chua-doc {
+  background-color: #fffaf0;
+  font-weight: 600;
 }
 
+.contact-table tr.chua-doc:hover {
+  background-color: #fefce8;
+}
+
+/* Chi tiết phản hồi */
 .chi-tiet-phan-hoi {
-  padding: 1.5rem;
-  border: 1px solid #ddd;
-  background-color: #fafafa;
-  border-radius: 6px;
+  margin-top: 20px;
+  padding: 20px;
+  background-color: white;
+  border-left: 4px solid ;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  animation: slideUp 0.5s ease-in-out;
 }
 
-.filter-bar {
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 15px;
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.filter-bar select {
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.chi-tiet-phan-hoi h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 15px;
+}
+
+.chi-tiet-phan-hoi p {
+  font-size: 1rem;
+  color: #4a5568;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.chi-tiet-phan-hoi p strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+/* Nút Đóng */
+.close-button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #f74b20; /* Red background */
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.close-button:hover {
+  background: #ff7e5f; /* Change to orange on hover */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .contact-list-container {
+    padding: 20px 10px;
+  }
+
+  .contact-list-container h2 {
+    font-size: 2rem;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .contact-table th,
+  .contact-table td {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  .contact-table th {
+    font-size: 0.95rem;
+  }
+
+  .chi-tiet-phan-hoi {
+    padding: 15px;
+  }
+
+  .chi-tiet-phan-hoi h3 {
+    font-size: 1.25rem;
+  }
+
+  .close-button {
+    padding: 8px 16px;
+    font-size: 0.95rem;
+  }
 }

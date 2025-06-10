@@ -44,7 +44,11 @@ const ContactList = () => {
 
       <div className="filter-bar">
         <label>Lọc: </label>
-        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <select 
+          value={filter} 
+          onChange={(e) => setFilter(e.target.value)} 
+          className="filter-dropdown"
+        >
           <option value="tat_ca">Tất cả</option>
           <option value="chua_doc">Chưa đọc</option>
           <option value="da_doc">Đã đọc</option>
@@ -86,6 +90,12 @@ const ContactList = () => {
           <p><strong>Chủ đề:</strong> {selected.chu_de}</p>
           <p><strong>Nội dung:</strong><br />{selected.noi_dung}</p>
           <p><strong>Ngày gửi:</strong> {new Date(selected.ngay_gui).toLocaleString()}</p>
+          <button
+            onClick={() => setSelected(null)}
+            className="close-button"
+          >
+            Đóng
+          </button>
         </div>
       )}
     </div>

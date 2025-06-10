@@ -1,56 +1,290 @@
+/* Wrapper */
 .wrapper-grid {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 20px;
 }
 
+/* Container chính */
 .admin-blog-list {
   max-width: 1200px;
-  margin: 2rem auto;
+  margin: 3rem auto;
   padding: 0 1rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  /* color: #222; */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9fafb;
+  min-height: 100vh;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
-h1 {
+/* Animation fadeIn */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tiêu đề */
+.section-header {
   text-align: center;
-  margin-bottom: 2rem;
-  font-weight: 700;
-  font-size: 2.5rem;
-  /* color: #e67e22; */
+  margin-bottom: 40px;
 }
 
-/* Sử dụng Flexbox thay cho Grid */
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 10px;
+  animation: slideDown 0.5s ease-in-out;
+}
+
+.title-underline {
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #ed4116, #e7741c); /* Gradient cam nhạt */
+  margin: 0 auto;
+  border-radius: 2px;
+}
+
+/* Animation slideDown */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Blog list flex */
 .blog-list-flex {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 24px;
+  justify-content: center;
+  gap: 30px;
 }
 
+/* Blog card */
 .blog-card {
-  flex: 0 0 calc(33.333% - 16px);
-  box-sizing: border-box;
+  flex: 0 0 calc(33.333% - 20px);
   background-color: white;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
   border-radius: 15px;
-  padding: 1rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
   cursor: pointer;
-  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
 }
 
 .blog-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
 }
 
+/* Hiệu ứng overlay khi hover */
+.blog-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 126, 95, 0.1),
+    rgba(254, 180, 123, 0.1)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.blog-card:hover::before {
+  opacity: 1;
+}
+
+/* Ảnh blog */
+.blog-thumb {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease, margin-top 0.3s ease;
+}
+
+.blog-card:hover .blog-thumb {
+  transform: scale(1.05);
+  margin-top: -10px; /* Nhích ảnh lên khi hover */
+}
+
+/* Tiêu đề blog */
+.blog-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: center;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+/* Hành động */
+.blog-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: auto;
+}
+
+/* Button Styles */
+.edit-btn,
+.delete-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Animation gradient di chuyển */
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Edit Button */
+.edit-btn {
+  background: linear-gradient(135deg, #fc6e4a);
+  background-size: 200% 200%;
+  color: white;
+  animation: gradientFlow 4s ease infinite; /* Hiệu ứng GIF-like */
+}
+
+.edit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(255, 126, 95, 0.3);
+}
+
+.edit-btn::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.edit-btn:hover::after {
+  width: 200px;
+  height: 200px;
+}
+
+/* Delete Button */
+.delete-btn {
+  background: linear-gradient(135deg, #fc6e4a);
+  background-size: 200% 200%;
+  color: white;
+  animation: gradientFlow 4s ease infinite; /* Hiệu ứng GIF-like */
+}
+
+.delete-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(247, 113, 113, 0.3);
+}
+
+.delete-btn::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.delete-btn:hover::after {
+  width: 200px;
+  height: 200px;
+}
+
+/* Nút Load More */
+.load-more {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.load-more button {
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, #fe6741); /* Gradient cam nhạt */
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.load-more button:hover {
+  filter: brightness(1.1);
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-top: 5rem;
+  color: #6b7280;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive Design */
 @media (max-width: 900px) {
   .blog-card {
-    flex: 0 0 48%;
+    flex: 0 0 calc(50% - 15px);
+  }
+
+  .section-title {
+    font-size: 2rem;
   }
 }
 
@@ -58,80 +292,23 @@ h1 {
   .blog-card {
     flex: 0 0 100%;
   }
-}
 
-.blog-thumb {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-}
+  .blog-thumb {
+    height: 180px;
+  }
 
-.blog-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 0.5rem;
-  text-align: center;
-  line-height: 1.4;
-}
+  .blog-title {
+    font-size: 1.2rem;
+  }
 
-.blog-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 1rem;
-}
+  .edit-btn,
+  .delete-btn {
+    padding: 8px 16px;
+    font-size: 0.95rem;
+  }
 
-.edit-btn,
-.delete-btn {
-  background-color: #007bff;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.edit-btn:hover,
-.delete-btn:hover {
-  background-color: #0056b3;
-}
-
-.delete-btn {
-  background-color: #dc3545;
-}
-
-.delete-btn:hover {
-  background-color: #c82333;
-}
-
-.load-more {
-  text-align: center;
-  margin-top: 2rem;
-}
-
-.load-more button {
-  padding: 12px 24px;
-  font-size: 1.1rem;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.load-more button:hover {
-  background-color: #218838;
-}
-
-.loading {
-  text-align: center;
-  font-size: 1.5rem;
-  margin-top: 3rem;
-  color: #666;
+  .load-more button {
+    padding: 10px 25px;
+    font-size: 1rem;
+  }
 }

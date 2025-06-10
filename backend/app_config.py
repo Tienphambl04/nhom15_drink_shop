@@ -1,3 +1,5 @@
+import logging
+from sqlalchemy import text
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO
@@ -17,12 +19,26 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'your_secret_key_here'
 
-    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'Uploads', 'hinh_anh')
+    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'uploads', 'hinh_anh')
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     db.init_app(app)
     socketio.init_app(app)
 
+    # Thiết lập logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
+    # Kiểm tra kết nối database khi app khởi tạo
+    with app.app_context():
+        try:
+            # Thực hiện truy vấn đơn giản
+            db.session.execute(text("SELECT 1"))
+            logger.info("Kết nối tới cơ sở dữ liệu MySQL thành công!")
+        except Exception as e:
+            logger.error(f"Lỗi kết nối cơ sở dữ liệu: {e}")
+
+    # Đăng ký các blueprint
     from routes.user_routes import user_bp
     app.register_blueprint(user_bp, url_prefix='/api/users')
 
@@ -56,7 +72,7 @@ def create_app():
     from routes.blog_routes import blog_bp
     app.register_blueprint(blog_bp,url_prefix = '/api/blog')
 
-    @app.route('/Uploads/hinh_anh/<filename>')
+    @app.route('/uploads/hinh_anh/<filename>')
     def serve_uploaded_file(filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 

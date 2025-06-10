@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { getUsers, resetUserPassword, toggleUserStatus, deleteUser } from '../../api/adminUser';
+import React, { useState, useEffect } from "react";
+import {
+  getUsers,
+  resetUserPassword,
+  toggleUserStatus,
+  deleteUser,
+} from "../../api/adminUser";
+import "./userList.css";
 
 function UserList() {
   const [users, setUsers] = useState([]);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     async function fetchUsers() {
@@ -11,7 +17,7 @@ function UserList() {
       if (res.success && Array.isArray(res.data)) {
         setUsers(res.data);
       } else {
-        console.error(res.message || 'Lấy danh sách người dùng thất bại');
+        console.error(res.message || "Lấy danh sách người dùng thất bại");
         setUsers([]);
       }
     }
@@ -19,32 +25,42 @@ function UserList() {
   }, [token]);
 
   const handleResetPassword = async (userId) => {
-  const confirmReset = window.confirm('Bạn có chắc muốn reset mật khẩu về mặc định là "123456" không?');
-  if (!confirmReset) return;
+    const confirmReset = window.confirm(
+      'Bạn có chắc muốn reset mật khẩu về mặc định là "123456" không?'
+    );
+    if (!confirmReset) return;
 
-  const res = await resetUserPassword(userId, {}, token); 
-  alert(res.message || (res.success ? 'Đổi mật khẩu thành công' : 'Đổi mật khẩu thất bại'));
-};
-
+    const res = await resetUserPassword(userId, {}, token);
+    alert(
+      res.message ||
+        (res.success ? "Đổi mật khẩu thành công" : "Đổi mật khẩu thất bại")
+    );
+  };
 
   const handleToggleStatus = async (userId) => {
     const res = await toggleUserStatus(userId, token);
     if (res.success) {
-      setUsers(users.map(user =>
-        user.ma_nguoi_dung === userId
-          ? { ...user, trang_thai: user.trang_thai === 'hoat_dong' ? 'bi_khoa' : 'hoat_dong' }
-          : user
-      ));
+      setUsers(
+        users.map((user) =>
+          user.ma_nguoi_dung === userId
+            ? {
+                ...user,
+                trang_thai:
+                  user.trang_thai === "hoat_dong" ? "bi_khoa" : "hoat_dong",
+              }
+            : user
+        )
+      );
     }
     alert(res.message);
   };
 
   const handleDelete = async (userId) => {
-    if (!window.confirm('Xác nhận xóa người dùng này?')) return;
+    if (!window.confirm("Xác nhận xóa người dùng này?")) return;
 
     const res = await deleteUser(userId, token);
     if (res.success) {
-      setUsers(users.filter(user => user.ma_nguoi_dung !== userId));
+      setUsers(users.filter((user) => user.ma_nguoi_dung !== userId));
     }
     alert(res.message);
   };
@@ -52,7 +68,7 @@ function UserList() {
   return (
     <div>
       <h2>Danh sách người dùng</h2>
-      <table>
+      <table className="table">
         <thead>
           <tr>
             <th>ID</th>
@@ -68,24 +84,34 @@ function UserList() {
         </thead>
         <tbody>
           {users.length === 0 ? (
-            <tr><td colSpan="9">Không có người dùng nào</td></tr>
+            <tr>
+              <td colSpan="9">Không có người dùng nào</td>
+            </tr>
           ) : (
-            users.map(user => (
+            users.map((user) => (
               <tr key={user.ma_nguoi_dung}>
                 <td>{user.ma_nguoi_dung}</td>
                 <td>{user.ten_dang_nhap}</td>
                 <td>{user.ho_ten}</td>
                 <td>{user.email}</td>
-                <td>{user.so_dien_thoai || '-'}</td>
-                <td>{user.dia_chi || '-'}</td>
+                <td>{user.so_dien_thoai || "-"}</td>
+                <td>{user.dia_chi || "-"}</td>
                 <td>{user.vai_tro}</td>
                 <td>{user.trang_thai}</td>
                 <td>
-                  <button onClick={() => handleResetPassword(user.ma_nguoi_dung)}>Reset MK</button>
-                  <button onClick={() => handleToggleStatus(user.ma_nguoi_dung)}>
-                    {user.trang_thai === 'hoat_dong' ? 'Khóa' : 'Mở khóa'}
+                  <button
+                    onClick={() => handleResetPassword(user.ma_nguoi_dung)}
+                  >
+                    Reset MK
                   </button>
-                  <button onClick={() => handleDelete(user.ma_nguoi_dung)}>Xóa</button>
+                  <button
+                    onClick={() => handleToggleStatus(user.ma_nguoi_dung)}
+                  >
+                    {user.trang_thai === "hoat_dong" ? "Khóa" : "Mở khóa"}
+                  </button>
+                  <button onClick={() => handleDelete(user.ma_nguoi_dung)}>
+                    Xóa
+                  </button>
                 </td>
               </tr>
             ))

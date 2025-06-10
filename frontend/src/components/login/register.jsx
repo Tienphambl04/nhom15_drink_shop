@@ -1,35 +1,35 @@
-import React, { useState } from 'react';
-import { registerUser } from '../../api/auth';
-import './register.css';
+import React, { useState } from "react";
+import { registerUser } from "../../api/auth";
+import "./register.css";
 
 function Register() {
   const [formData, setFormData] = useState({
-    ho_ten: '',
-    ten_dang_nhap: '',
-    so_dien_thoai: '',
-    email: '',
-    dia_chi: '',
-    mat_khau: '',
-    mat_khau_xac_nhan: '',
+    ho_ten: "",
+    ten_dang_nhap: "",
+    so_dien_thoai: "",
+    email: "",
+    dia_chi: "",
+    mat_khau: "",
+    mat_khau_xac_nhan: "",
   });
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const validateForm = () => {
     if (formData.mat_khau !== formData.mat_khau_xac_nhan) {
-      alert('Mật khẩu xác nhận không khớp.');
+      alert("Mật khẩu xác nhận không khớp.");
       return false;
     }
     if (!/^(0[3|5|7|8|9])+([0-9]{8})$/.test(formData.so_dien_thoai)) {
-      alert('Số điện thoại không hợp lệ.');
+      alert("Số điện thoại không hợp lệ.");
       return false;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      alert('Email không hợp lệ.');
+      alert("Email không hợp lệ.");
       return false;
     }
     return true;
@@ -37,21 +37,21 @@ function Register() {
 
   const resetForm = () => {
     setFormData({
-      ho_ten: '',
-      ten_dang_nhap: '',
-      so_dien_thoai: '',
-      email: '',
-      dia_chi: '',
-      mat_khau: '',
-      mat_khau_xac_nhan: '',
+      ho_ten: "",
+      ten_dang_nhap: "",
+      so_dien_thoai: "",
+      email: "",
+      dia_chi: "",
+      mat_khau: "",
+      mat_khau_xac_nhan: "",
     });
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsLoading(true);
 
     const payload = {
@@ -65,17 +65,22 @@ function Register() {
 
     try {
       const result = await registerUser(payload);
-      
+
       // Kiểm tra thành công - đa dạng các trường hợp
-      if (result?.success || result?.status === 'success' || result?.code === 200 || !result?.error) {
-        alert('Đăng ký thành công!');
+      if (
+        result?.success ||
+        result?.status === "success" ||
+        result?.code === 200 ||
+        !result?.error
+      ) {
+        alert("Đăng ký thành công!");
         resetForm();
       } else {
-        alert(result?.message || 'Đăng ký thất bại.');
+        alert(result?.message || "Đăng ký thất bại.");
       }
     } catch (error) {
       console.error(error);
-      alert('Có lỗi xảy ra trong quá trình đăng ký.');
+      alert("Có lỗi xảy ra trong quá trình đăng ký.");
     } finally {
       setIsLoading(false);
     }
@@ -184,7 +189,7 @@ function Register() {
           </div>
 
           <button type="submit" className="login-btn" disabled={isLoading}>
-            {isLoading ? 'Đang đăng ký...' : 'Đăng ký'}
+            {isLoading ? "Đang đăng ký..." : "Đăng ký"}
           </button>
         </form>
 
@@ -193,13 +198,29 @@ function Register() {
         </p>
 
         <div className="social-login">
-          <button className="facebook" onClick={() => window.location.href = "https://www.facebook.com/login"}>
-            <img src="img/anh24.jpg" alt="Facebook" style={{ width: 20, height: 20, marginRight: 5 }} />
-            Facebook
+          <button
+            className="facebook"
+            onClick={() =>
+              (window.location.href = "https://www.facebook.com/login")
+            }
+          >
+            <img
+              src="img/anh24.jpg"
+              alt="Facebook"
+              style={{ width: 20, height: 20, marginRight: 5 }}
+            />
           </button>
-          <button className="google" onClick={() => window.location.href = "https://accounts.google.com"}>
-            <img src="img/anh23.png" alt="Google" style={{ width: 20, height: 20, marginRight: 5 }} />
-            Google
+          <button
+            className="google"
+            onClick={() =>
+              (window.location.href = "https://accounts.google.com")
+            }
+          >
+            <img
+              src="img/anh23.png"
+              alt="Google"
+              style={{ width: 20, height: 20, marginRight: 5 }}
+            />
           </button>
         </div>
       </div>

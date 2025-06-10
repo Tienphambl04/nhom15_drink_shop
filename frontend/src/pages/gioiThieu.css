@@ -1,0 +1,132 @@
+/* Global container */
+.gioi-thieu-container {
+  max-width: 1200px;
+  margin: 0 auto ;
+
+  padding: 0 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* Hero Section */
+.hero {
+  position: relative;
+  background: linear-gradient(135deg, #aab6e9 10%, #c495f0 90%);
+  border-radius: 20px;
+  padding: 80px 60px;
+  margin: 20px 0 40px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(142, 149, 181, 0.3);
+  overflow: hidden;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.hero-subtitle {
+  font-size: 1.3rem;
+  opacity: 0.9;
+  font-weight: 300;
+}
+
+.hero-decoration {
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Section */
+.section {
+  margin-bottom: 80px;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 10px;
+}
+
+.title-underline {
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  margin: 0 auto;
+  border-radius: 2px;
+}
+
+/* Content */
+.section-text {
+  font-size: 1.125rem;
+  color: #4a5568;
+  line-height: 1.75;
+  text-align: justify;
+}
+
+.category-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 30px;
+  padding-left: 20px;
+  border-left: 4px solid #667eea;
+}
+
+/* Menu list */
+.menu-list {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  font-size: 1.125rem;
+  color: #4a5568;
+}
+
+.menu-item {
+  margin-bottom: 0.5rem;
+}
+
+.menu-item strong {
+  font-weight: 600;
+}
+
+/* Button */
+.button-container {
+  text-align: center;
+}
+
+.back-button {
+  padding: 12px 24px;
+  border: none;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.back-button:hover {
+  filter: brightness(1.1);
+}
+

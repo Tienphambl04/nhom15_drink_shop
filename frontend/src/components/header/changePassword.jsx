@@ -1,24 +1,24 @@
-import React, { useState } from 'react';
-import { changePassword } from '../../api/auth';
-import './form.css';
+import React, { useState } from "react";
+import { changePassword } from "../../api/auth";
+import "./changePassword.css";
 
 function ChangePassword() {
   const [formData, setFormData] = useState({
-    mat_khau_cu: '',
-    mat_khau_moi: '',
-    mat_khau_xac_nhan: '',
+    mat_khau_cu: "",
+    mat_khau_moi: "",
+    mat_khau_xac_nhan: "",
   });
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     const result = await changePassword(formData, token);
     if (result.success) {
-      alert('Đổi mật khẩu thành công!');
+      alert("Đổi mật khẩu thành công!");
     } else {
       alert(result.message);
     }

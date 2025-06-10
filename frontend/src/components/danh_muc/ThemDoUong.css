@@ -1,0 +1,66 @@
+/* addUser.css */
+.adduser-section {
+    background-color: #f9f8f8; /* White background */
+    padding: 2rem; /* Padding around the form */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    max-width: 600px; /* Max width for the form */
+    margin: 2rem auto; /* Center the form */
+}
+
+h2 {
+    color: #ff6b35; /* Heading color */
+    text-align: center; /* Center the heading */
+}
+
+.form-group {
+    margin-bottom: 1rem; /* Space below each form group */
+}
+
+label {
+    display: block; /* Block display for labels */
+    margin-bottom: 0.5rem; /* Space below labels */
+    font-weight: bold; /* Bold text for labels */
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+    width: 100%; /* Full width */
+    padding: 0.8rem; /* Padding for inputs */
+    border: 1px solid #ddd; /* Light border */
+    border-radius: 4px; /* Rounded corners */
+    margin-bottom: 1rem; /* Space below inputs */
+    transition: border-color 0.3s; /* Smooth transition */
+}
+
+/* Focus state for inputs */
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #ff6b35; /* Change border color on focus */
+    outline: none; /* Remove default outline */
+}
+
+.add-user-button {
+    background-color: #ff6b35; /* Color for add button */
+    color: white; /* Text color */
+    padding: 0.5rem 1rem; /* Padding for better spacing */
+    border: none; /* Remove default border */
+    border-radius: 4px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s; /* Smooth transition */
+    display: block; /* Block display for button */
+    width: 100%; /* Full width */
+}
+
+/* Hover state for add button */
+.add-user-button:hover {
+    background-color: #f7931e; /* Darker color on hover */
+}
+
+.submit-btn:disabled {
+    background-color: #ccc; /* Màu nền khi nút bị vô hiệu hóa */
+    cursor: not-allowed; /* Con trỏ chuột khi nút bị vô hiệu hóa */
+}

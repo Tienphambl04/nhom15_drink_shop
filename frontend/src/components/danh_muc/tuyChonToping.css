@@ -1,0 +1,181 @@
+/* CSS Variables for consistent theming */
+:root {
+    --primary-color: #ff6b35; /* Màu chính */
+    --secondary-color: #f7931e; /* Màu phụ */
+    --background-color: #f7f7f7; /* Màu nền */
+    --border-radius: 8px; /* Độ bo góc */
+    --transition-smooth: 0.3s ease; /* Hiệu ứng chuyển tiếp */
+}
+
+/* Main Container */
+.drink-options-manager {
+    background-color: var(--background-color);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 2rem auto; /* Căn giữa theo chiều ngang */
+}
+
+/* Title */
+.drink-options-manager h3 {
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+/* Form Group */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+/* Label */
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Input Fields */
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    transition: border-color var(--transition-smooth);
+}
+
+/* Focus State */
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+/* Button Styles for Edit, Delete, and Add Options */
+.edit-button,
+.delete-button,
+.add-option-button {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color var(--transition-smooth);
+    margin-right: 0.5rem; /* Space between buttons */
+}
+
+/* Hover State for Buttons */
+.edit-button:hover,
+.delete-button:hover,
+.add-option-button:hover {
+    background-color: var(--secondary-color);
+}
+
+/* Active State for Add Buttons */
+.add-option-button:active {
+    transform: scale(0.95); /* Slightly shrink on click */
+}
+
+/* Button Styles for Remove Option */
+.remove-option-button {
+    background-color: #ff6b35; /* Red color for delete */
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color var(--transition-smooth);
+}
+
+/* Hover State for Remove Option Button */
+.remove-option-button:hover {
+    background-color:#f7931e; /* Darker red on hover */
+}
+
+/* Disabled State for Delete Button */
+.delete-button:disabled {
+    background-color: #ccc; /* Grey out the button */
+    cursor: not-allowed; /* Change cursor to indicate it's disabled */
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+th, td {
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .drink-options-manager {
+        padding: 1rem;
+    }
+
+    .add-option-button,
+    .add-user-button {
+        width: 100%;
+    }
+}
+
+/* Align buttons in a row */
+.button-group {
+    display: flex; /* Use flexbox for alignment */
+    justify-content: space-between; /* Space between buttons */
+    margin-top: 1rem; /* Space above the button group */
+}
+
+.remove-option-button,
+.add-option-button,
+.add-user-button {
+    flex: 1; /* Make buttons take equal space */
+    margin: 0 0.5rem; /* Add some space between buttons */
+    padding: 0.5rem; /* Adjust padding for better appearance */
+    border: none; /* Remove default border */
+    border-radius: var(--border-radius); /* Use existing border radius */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color var(--transition-smooth); /* Smooth transition */
+}
+
+/* Specific styles for each button */
+.remove-option-button {
+    background-color: #ff6b35; /* Color for delete button */
+    color: white; /* Text color */
+}
+
+.add-option-button {
+    background-color: #ff6b35; /* Color for add option button */
+    color: white; /* Text color */
+}
+
+.add-user-button {
+    background-color: var(--primary-color); /* Color for add user button */
+    color: white; /* Text color */
+}
+
+/* Hover states */
+.remove-option-button:hover,
+.add-option-button:hover,
+.add-user-button:hover {
+    opacity: 0.8; /* Slightly fade on hover */
+}

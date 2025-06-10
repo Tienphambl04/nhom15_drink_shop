@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchDanhSachDanhMuc } from '../../api/danh_muc';
 import { getDoUongTheoDanhMuc } from '../../api/doUong';
 import { fetchTuyChonByDoUong, themTuyChon, xoaTuyChon, suaTuyChon } from '../../api/tuyChon';
+import './tuyChonToping.css';
 
 export default function DrinkOptionsManager() {
   const [danhMucList, setDanhMucList] = useState([]);
@@ -133,14 +134,20 @@ export default function DrinkOptionsManager() {
   }
 
   function startEditOption(tc) {
-    setEditingOptions(prev => ({
-      ...prev,
-      [tc.ma_tuy_chon]: {
-        loai_tuy_chon: tc.loai_tuy_chon,
-        gia_tri: tc.gia_tri,
-        gia_them: tc.gia_them,
-      }
-    }));
+    if (editingOptions.hasOwnProperty(tc.ma_tuy_chon)) {
+        // If already editing, save the changes
+        saveEditOption(tc.ma_tuy_chon);
+    } else {
+        // Start editing
+        setEditingOptions(prev => ({
+            ...prev,
+            [tc.ma_tuy_chon]: {
+                loai_tuy_chon: tc.loai_tuy_chon,
+                gia_tri: tc.gia_tri,
+                gia_them: tc.gia_them,
+            }
+        }));
+    }
   }
 
   function cancelEditOption(id) {
@@ -197,7 +204,7 @@ export default function DrinkOptionsManager() {
   }
 
   return (
-    <div>
+    <div className="drink-options-manager">
       <h3>Quản lý tùy chọn đồ uống</h3>
 
       <label>
@@ -238,6 +245,7 @@ export default function DrinkOptionsManager() {
             {optionInputs.map((option, idx) => (
               <div
                 key={idx}
+                className="option-input-group"
                 style={{
                   marginBottom: '1rem',
                   padding: '0.5rem',
@@ -315,20 +323,24 @@ export default function DrinkOptionsManager() {
 
                 <br />
 
-                <button type="button" onClick={() => removeOptionInput(idx)} disabled={optionInputs.length === 1}>
-                  Xóa tùy chọn này
-                </button>
+                <div className="button-group">
+                    <button 
+                        type="button" 
+                        className="remove-option-button" 
+                        onClick={() => removeOptionInput(idx)} 
+                        disabled={optionInputs.length === 1}
+                    >
+                        Xóa tùy chọn này
+                    </button>
+                    <button className="add-option-button" onClick={addOptionInput}>
+                        Thêm tùy chọn mới
+                    </button>
+                    <button className="add-user-button" type="submit">
+                        Thêm tùy chọn
+                    </button>
+                </div>
               </div>
             ))}
-
-            <button type="button" onClick={addOptionInput}>
-              Thêm tùy chọn mới
-            </button>
-
-            <br />
-            <br />
-
-            <button type="submit">Thêm tùy chọn</button>
           </form>
 
           <h4 style={{ marginTop: '2rem' }}>Danh sách tùy chọn hiện có</h4>
@@ -348,82 +360,16 @@ export default function DrinkOptionsManager() {
               <tbody>
                 {tuyChonList.map(tc => {
                   const isEditing = editingOptions.hasOwnProperty(tc.ma_tuy_chon);
-                  if (isEditing) {
-                    const edit = editingOptions[tc.ma_tuy_chon];
-                    return (
-                      <tr key={tc.ma_tuy_chon}>
-                        <td>
-                          <select
-                            value={edit.loai_tuy_chon}
-                            onChange={e => handleEditChange(tc.ma_tuy_chon, 'loai_tuy_chon', e.target.value)}
-                          >
-                            <option value="">-- Chọn loại --</option>
-                            <option value="size">Size</option>
-                            <option value="sugar">Đường</option>
-                            <option value="ice">Đá</option>
-                            <option value="topping">Topping</option>
-                          </select>
-                        </td>
-                        <td>
-                          <select
-                            value={edit.gia_tri}
-                            onChange={e => handleEditChange(tc.ma_tuy_chon, 'gia_tri', e.target.value)}
-                          >
-                            <option value="">-- Chọn giá trị --</option>
-                            {(edit.loai_tuy_chon === 'size' && (
-                              <>
-
-                                <option value="M">M</option>
-                                <option value="L">L</option>
-                                <option value="XL">XL</option>
-                              </>
-                            )) ||
-                              (edit.loai_tuy_chon === 'sugar' && (
-                                <>
-                                  <option value="0%">0 đường</option>
-                                  <option value="50%">1/2 đường</option>
-                                  <option value="100%">Nguyên bản</option>
-                                </>
-                              )) || (edit.loai_tuy_chon === 'ice' && (
-                                <>
-                                  <option value="Nóng">Nóng</option>
-                                  <option value="Lạnh">Lạnh</option>
-                                </>
-                              ))
-                              ||
-                              (edit.loai_tuy_chon === 'topping' && (
-                                <>
-                                  <option value="Thạch">Thạch</option>
-                                  <option value="Trân châu">Trân châu</option>
-                                  <option value="Pudding">Pudding</option>
-                                  <option value="Kem cheese">Kem cheese</option>
-                                </>
-                              ))}
-                          </select>
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            min="0"
-                            value={edit.gia_them}
-                            onChange={e => handleEditChange(tc.ma_tuy_chon, 'gia_them', e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <button onClick={() => saveEditOption(tc.ma_tuy_chon)}>Lưu</button>{' '}
-                          <button onClick={() => cancelEditOption(tc.ma_tuy_chon)}>Hủy</button>
-                        </td>
-                      </tr>
-                    );
-                  }
                   return (
                     <tr key={tc.ma_tuy_chon}>
                       <td>{tc.loai_tuy_chon}</td>
                       <td>{tc.gia_tri}</td>
                       <td>{tc.gia_them}</td>
                       <td>
-                        <button onClick={() => startEditOption(tc)}>Sửa</button>{' '}
-                        <button onClick={() => handleDeleteOption(tc.ma_tuy_chon)}>Xóa</button>
+                        <button className="edit-button" onClick={() => startEditOption(tc)}>
+                          {isEditing ? 'Lưu' : 'Sửa'}
+                        </button>
+                        <button className="delete-button" onClick={() => handleDeleteOption(tc.ma_tuy_chon)}>Xóa</button>
                       </td>
                     </tr>
                   );

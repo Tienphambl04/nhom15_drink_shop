@@ -1,0 +1,151 @@
+.order-form {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  transition: all 0.3s ease;
+  background-color: #f8fafc; /* Trắng xám nhạt */
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.order-form h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #1f2937; /* Xám đậm */
+}
+
+.loading {
+  padding: 20px;
+  text-align: center;
+  font-size: 1.125rem;
+  color: #4b5563; /* Xám trung */
+}
+
+.error {
+  padding: 20px;
+  text-align: center;
+  color: #e53e3e; /* Đỏ cam cho lỗi */
+  font-size: 1.125rem;
+}
+
+.empty-cart {
+  text-align: center;
+  font-size: 1.125rem;
+  color: #4b5563; /* Xám trung */
+}
+
+.empty-cart a {
+  color: #f97316; /* Cam chính */
+  text-decoration: underline;
+}
+
+.cart-items,
+.temp-items {
+  margin-bottom: 20px;
+}
+
+.cart-items h3,
+.temp-items h3 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #1f2937; /* Xám đậm */
+  margin-bottom: 10px;
+}
+
+.cart-item,
+.temp-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px;
+  border-bottom: 1px solid #e2e8f0; /* Xám nhạt */
+  background-color: #ffffff; /* Trắng */
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.order-info {
+  display: grid;
+  gap: 10px;
+}
+
+.order-info h3 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #1f2937; /* Xám đậm */
+  margin-bottom: 10px;
+}
+
+.input-field {
+  padding: 8px;
+  border: 1px solid #d1d5db; /* Xám nhạt */
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #1f2937; /* Xám đậm */
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-field:focus {
+  border-color: #f97316; /* Cam chính */
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2); /* Cam nhạt */
+}
+
+.info-note {
+  font-size: 0.75rem;
+  color: #6b7280; /* Xám trung */
+}
+
+.reset-button {
+  background-color: #f97316; /* Cam chính */
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s ease;
+}
+
+.reset-button:hover {
+  background-color: #ea580c; /* Cam đậm hơn khi hover */
+}
+
+.select-field {
+  padding: 8px;
+  border: 1px solid #d1d5db; /* Xám nhạt */
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #1f2937; /* Xám đậm */
+  background-color: white;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.select-field:focus {
+  border-color: #f97316; /* Cam chính */
+  box-shadow: 0 0 0 2px rgba(246, 246, 247, 0.2); /* Cam nhạt */
+}
+
+.place-order-button {
+  background-color: #f97316; /* Cam chính */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.place-order-button:disabled {
+  background-color: #9ca3af; /* Xám trung khi disabled */
+  cursor: not-allowed;
+}
+
+.place-order-button:not(:disabled):hover {
+  background-color: #ea580c; /* Cam đậm hơn khi hover */
+}

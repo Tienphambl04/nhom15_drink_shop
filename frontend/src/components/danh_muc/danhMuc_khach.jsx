@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getDoUongTheoDanhMuc } from "../../api/doUong";
@@ -7,6 +6,7 @@ import { fetchTuyChonByDoUong } from "../../api/tuyChon";
 import { addGioHang } from "../../api/gioHang";
 import { useCart } from "../../components/gio_hang/cartContext";
 import CommentSection from "./binhLuan";
+import "./danhMuc_khach.css";
 
 const HienThiDoUongTheoDanhMuc = () => {
   const { ma_danh_muc } = useParams();
@@ -17,6 +17,10 @@ const HienThiDoUongTheoDanhMuc = () => {
   const [tenDanhMuc, setTenDanhMuc] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   const [showModal, setShowModal] = useState(false);
   const [selectedDrink, setSelectedDrink] = useState(null);
@@ -31,7 +35,10 @@ const HienThiDoUongTheoDanhMuc = () => {
         setError(null);
 
         const dataDoUong = await getDoUongTheoDanhMuc(ma_danh_muc);
-        console.log("Drink images:", dataDoUong.map(d => d.hinh_anh));
+        console.log(
+          "Drink images:",
+          dataDoUong.map((d) => d.hinh_anh)
+        );
         setDsDoUong(dataDoUong);
 
         const resDanhMuc = await fetchDanhSachDanhMuc();
@@ -54,7 +61,73 @@ const HienThiDoUongTheoDanhMuc = () => {
     loadData();
   }, [ma_danh_muc]);
 
+  // Reset current page when category changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [ma_danh_muc]);
+
   const doUongHienThi = dsDoUong.filter((d) => d.hien_thi);
+
+  // Pagination calculations
+  const totalItems = doUongHienThi.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = doUongHienThi.slice(startIndex, endIndex);
+
+  // Pagination handlers
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      handlePageChange(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      handlePageChange(currentPage + 1);
+    }
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
 
   const handleThemGioHang = async (drink) => {
     setIsBuyNow(false);
@@ -169,7 +242,9 @@ const HienThiDoUongTheoDanhMuc = () => {
 
         if (isSuccess) {
           alert(
-            `Đã thêm "${selectedDrink.ten_do_uong}" vào giỏ hàng!\nTổng tiền: ${tinhTongTien().toLocaleString()} VNĐ`
+            `Đã thêm "${
+              selectedDrink.ten_do_uong
+            }" vào giỏ hàng!\nTổng tiền: ${tinhTongTien().toLocaleString()} VNĐ`
           );
           setShowModal(false);
           setSelectedOptions({});
@@ -178,7 +253,9 @@ const HienThiDoUongTheoDanhMuc = () => {
           await fetchCart();
         } else {
           const errorMessage =
-            result?.message || result?.error || "Phản hồi từ server không hợp lệ";
+            result?.message ||
+            result?.error ||
+            "Phản hồi từ server không hợp lệ";
           throw new Error(errorMessage);
         }
       }
@@ -196,6 +273,14 @@ const HienThiDoUongTheoDanhMuc = () => {
     }
   };
 
+  // Handle click outside to close modal
+  const handleOverlayClick = (e) => {
+    if (e.target.className.includes("modal-overlay")) {
+      setShowModal(false);
+      setSelectedOptions({});
+    }
+  };
+
   return (
     <div className="category-drinks">
       <h2>Đồ uống theo danh mục: {tenDanhMuc}</h2>
@@ -206,8 +291,15 @@ const HienThiDoUongTheoDanhMuc = () => {
         <p>Không có đồ uống nào được hiển thị trong danh mục này.</p>
       )}
 
+      {!loading && totalItems > 0 && (
+        <div className="items-info">
+          Hiển thị <span>{startIndex + 1}</span> - <span>{Math.min(endIndex, totalItems)}</span> 
+          {' '}trong tổng số <span>{totalItems}</span> sản phẩm
+        </div>
+      )}
+
       <div className="drink-list">
-        {doUongHienThi.map((d) => {
+        {currentItems.map((d) => {
           const giaGiam =
             d.giam_gia_phan_tram && d.giam_gia_phan_tram > 0
               ? Math.round(d.gia * (1 - d.giam_gia_phan_tram / 100))
@@ -217,42 +309,45 @@ const HienThiDoUongTheoDanhMuc = () => {
             <div key={d.ma_do_uong} className="drink-item">
               <div className="drink-content">
                 <div className="drink-details">
-                  <h3>{d.ten_do_uong}</h3>
                   {d.hinh_anh ? (
                     <img
-                      src={`http://localhost:5000/Uploads/hinh_anh/${d.hinh_anh}`}
+                      src={`http://localhost:5000/uploads/hinh_anh/${d.hinh_anh}`}
                       alt={d.ten_do_uong}
-                      style={{ width: '150px', height: '120px', objectFit: 'cover' }}
-                      onError={(e) => console.error(`Failed to load image: ${e.target.src}`)}
+                      style={{ width: "100%", height: 200, objectFit: "cover" }}
+                      onClick={() => handleThemGioHang(d)}
                     />
                   ) : (
                     <p>Không có hình ảnh</p>
                   )}
+                  <h3>{d.ten_do_uong}</h3>
                   <p>
-                    <strong>Giá gốc:</strong> {Number(d.gia).toLocaleString()} VNĐ
-                  </p>
-                  {d.giam_gia_phan_tram > 0 && (
-                    <p>
-                      <strong>Giảm giá:</strong> {d.giam_gia_phan_tram}%{' '}
-                      <span style={{ color: "red" }}>
-                        (Giá sau giảm: {giaGiam.toLocaleString()} VNĐ)
-                      </span>
-                    </p>
-                  )}
-                  <p>
-                    <strong>Mô tả:</strong> {d.mo_ta || "Không có mô tả"}
+                    <strong>Giá:</strong>{" "}
+                    {d.giam_gia_phan_tram > 0 ? (
+                      <>
+                        <span
+                          style={{
+                            textDecoration: "line-through",
+                            color: "#888",
+                          }}
+                        >
+                          {Number(d.gia).toLocaleString()} VNĐ
+                        </span>{" "}
+                        <span style={{ color: "#dc2626" }}>
+                          {giaGiam.toLocaleString()} VNĐ
+                        </span>
+                      </>
+                    ) : (
+                      <span>{Number(d.gia).toLocaleString()} VNĐ</span>
+                    )}
                   </p>
                   <div className="drink-actions">
-                    <button onClick={() => handleThemGioHang(d)}>
-                      Thêm vào giỏ hàng
+                    <button className="addToCartBtn" onClick={() => handleThemGioHang(d)}>
+                      Thêm vào giỏ
                     </button>
-                    <button className="buy-now" onClick={() => handleBuyNow(d)}>
+                    <button className="buyNowBtn" onClick={() => handleBuyNow(d)}>
                       Mua ngay
                     </button>
                   </div>
-                </div>
-                <div className="drink-comments">
-                  <CommentSection maDoUong={d.ma_do_uong} />
                 </div>
               </div>
             </div>
@@ -260,13 +355,78 @@ const HienThiDoUongTheoDanhMuc = () => {
         })}
       </div>
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="pagination-container">
+          <button
+            className="pagination-button pagination-prev"
+            onClick={handlePrevPage}
+            disabled={currentPage === 1}
+          >
+            ‹ Trước
+          </button>
+
+          {getPageNumbers().map((page, index) => (
+            <React.Fragment key={index}>
+              {page === '...' ? (
+                <span className="pagination-dots">...</span>
+              ) : (
+                <button
+                  className={`pagination-button ${
+                    currentPage === page ? 'active' : ''
+                  }`}
+                  onClick={() => handlePageChange(page)}
+                >
+                  {page}
+                </button>
+              )}
+            </React.Fragment>
+          ))}
+
+          <button
+            className="pagination-button pagination-next"
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+          >
+            Sau ›
+          </button>
+
+          <div className="pagination-info">
+            Trang {currentPage} / {totalPages}
+          </div>
+        </div>
+      )}
+
       {showModal && selectedDrink && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={handleOverlayClick}>
           <div className="modal-content">
             <h3>
-              {isBuyNow ? "Mua ngay" : "Thêm vào giỏ hàng"}: {selectedDrink.ten_do_uong}
+              {isBuyNow ? "Mua ngay" : "Thêm vào giỏ hàng"}:{" "}
+              {selectedDrink.ten_do_uong}
             </h3>
-
+            <div className="modal-product-details">
+              {selectedDrink.hinh_anh ? (
+                <img
+                  src={`http://localhost:5000/uploads/hinh_anh/${selectedDrink.hinh_anh}`}
+                  alt={selectedDrink.ten_do_uong}
+                  style={{ width: "100%", height: 200, objectFit: "cover" }}
+                />
+              ) : (
+                <p>Không có hình ảnh</p>
+              )}
+              <p>
+                <strong>Giá gốc:</strong>{" "}
+                {Number(selectedDrink.gia).toLocaleString()} VNĐ
+              </p>
+              {selectedDrink.giam_gia_phan_tram > 0 && (
+                <p>
+                  <strong>Giảm giá:</strong> {selectedDrink.giam_gia_phan_tram}%{" "}
+                  <span style={{ color: "#dc2626" }}>
+                    (Giá sau giảm: {tinhTongTien().toLocaleString()} VNĐ)
+                  </span>
+                </p>
+              )}
+            </div>
             {Object.entries(drinkOptions).map(([loai, opts]) => (
               <div key={loai} className="option-group">
                 <p>
@@ -289,11 +449,9 @@ const HienThiDoUongTheoDanhMuc = () => {
                 ))}
               </div>
             ))}
-
             <div className="total-price">
               <p>Tổng tiền: {tinhTongTien().toLocaleString()} VNĐ</p>
             </div>
-
             <div className="modal-actions">
               <button
                 onClick={() => {
@@ -307,6 +465,9 @@ const HienThiDoUongTheoDanhMuc = () => {
               <button onClick={handleXacNhan} className="confirm-button">
                 {isBuyNow ? "Xác nhận mua" : "Thêm vào giỏ hàng"}
               </button>
+            </div>
+            <div className="drink-comments">
+              <CommentSection maDoUong={selectedDrink.ma_do_uong} />
             </div>
           </div>
         </div>

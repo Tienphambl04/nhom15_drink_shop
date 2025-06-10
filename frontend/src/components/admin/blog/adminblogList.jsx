@@ -38,7 +38,7 @@ function AdminBlogList() {
   };
 
   const handleLoadMore = () => {
-    setVisibleBlogs(prev => prev + 6);
+    setVisibleBlogs(prev => prev + 9);
   };
 
   if (loading) return <div className="loading">Đang tải dữ liệu...</div>;
@@ -74,7 +74,9 @@ function AdminBlogList() {
                 <div key={blog.ma_blog} className="blog-card">
                   <img
                     className="blog-thumb"
-                    src={`http://localhost:5000/${blog.hinh_anh}`}
+                    src={`http://localhost:5000/uploads/hinh_anh/${blog.hinh_anh
+                        .split("/")
+                        .pop()}`}
                     alt={blog.tieu_de}
                   />
                   <h3 className="blog-title">
@@ -114,3 +116,4 @@ function AdminBlogList() {
 }
 
 export default AdminBlogList;
+ 

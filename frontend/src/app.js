@@ -1,20 +1,20 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import MainLayout from './components/mainLayout';
-import HomePage from './pages/home';
-import Register from './components/login/register';
-import Login from './components/login/login';
-import ChangePassword from './components/header/changePassword';
-import Profile from './components/header/profile';
-import AdminDashboard from './pages/adminDashboard';
-import AdminRoutes from './adminRoutes';
-import HienThiDoUongTheoDanhMuc from './components/danh_muc/danhMuc_khach';
-import GioHang from './components/gio_hang/gioHang';
-import OrderForm from './components/don_hang/orderForm';
-import OrderHistory from './components/don_hang/orderHistory';
-import ContactPage from './components/contact/contactPage';
-import BlogList from './components/blog/blogList';
-import About from './pages/gioiThieu';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import MainLayout from "./components/mainLayout";
+import HomePage from "./pages/home";
+import Register from "./components/login/register";
+import Login from "./components/login/login";
+import ChangePassword from "./components/header/changePassword";
+import Profile from "./components/header/profile";
+import AdminDashboard from "./pages/adminDashboard";
+import AdminRoutes from "./adminRoutes";
+import HienThiDoUongTheoDanhMuc from "./components/danh_muc/danhMuc_khach";
+import GioHang from "./components/gio_hang/gioHang";
+import OrderForm from "./components/don_hang/orderForm";
+import OrderHistory from "./components/don_hang/orderHistory";
+import ContactPage from "./components/contact/contactPage";
+import BlogList from "./components/blog/blogList";
+import About from "./pages/gioiThieu";
 
 function App() {
   return (
@@ -45,18 +45,20 @@ function App() {
           }
         />
         <Route
-          path="/contact" element={
+          path="/contact"
+          element={
             <MainLayout>
-            <ContactPage />
+              <ContactPage />
             </MainLayout>
-            }
+          }
         />
         <Route
-          path="/blog" element={
+          path="/blog"
+          element={
             <MainLayout>
-            <BlogList />
+              <BlogList />
             </MainLayout>
-            }
+          }
         />
         <Route
           path="/login"

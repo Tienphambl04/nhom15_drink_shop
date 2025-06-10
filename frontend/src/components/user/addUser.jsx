@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { addUser } from '../../api/adminUser';
-
+import './addUser.css';
 function AddUser() {
   const [formData, setFormData] = useState({
     ho_ten: '',
@@ -181,7 +181,7 @@ function AddUser() {
             </select>
           </div>
 
-          <button type="submit" className="submit-btn" disabled={isLoading}>
+          <button className="add-user-button" type="submit" disabled={isLoading}>
             {isLoading ? 'Đang thêm...' : 'Thêm người dùng'}
           </button>
         </form>

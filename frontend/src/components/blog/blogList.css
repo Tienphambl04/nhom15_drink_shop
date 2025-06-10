@@ -1,13 +1,13 @@
 /* Container tổng danh sách blog */
 .blog-list-container {
-  max-width: 1200px;
-  margin: 2rem auto;
+  max-width: 100%;
+  margin: 1rem auto;
   padding: 0 1rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: #222;
   background-color: #f9f9f9;
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   padding-bottom: 2rem;
   display: flex;
   flex-direction: column;
@@ -18,7 +18,7 @@ h1 {
   text-align: center;
   margin-bottom: 1rem;
   font-weight: 700;
-  font-size: 2.5rem;
+  font-size: calc(1.5rem + 1vw); /* Responsive font size */
   color: #333;
   letter-spacing: 1.2px;
 }
@@ -28,24 +28,26 @@ h1 {
   position: relative;
   display: flex;
   align-items: center;
-  margin: 0 auto 2rem;
-  max-width: 1200px;
+  margin: 0 auto 1rem;
+  max-width: 100%;
+  padding: 0 0.5rem;
 }
 
 .scroll-btn {
-  background-color: rgba(0,0,0,0.1);
+  background-color: rgba(0, 0, 0, 0.1);
   border: none;
-  font-size: 2rem;
+  font-size: 1.5rem; /* Smaller font size for buttons */
   cursor: pointer;
-  padding: 0.3rem 0.7rem;
+  padding: 0.3rem 0.5rem;
   border-radius: 50%;
   transition: background-color 0.3s ease;
   user-select: none;
   flex-shrink: 0;
+  z-index: 10;
 }
 
 .scroll-btn:hover:not(:disabled) {
-  background-color: rgba(0,0,0,0.3);
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 .scroll-btn:disabled {
@@ -54,22 +56,25 @@ h1 {
 }
 
 .scroll-btn.left {
-  margin-right: 10px;
+  margin-right: 8px;
 }
 
 .scroll-btn.right {
-  margin-left: 10px;
+  margin-left: 8px;
 }
 
 .blog-carousel {
   display: flex;
   overflow-x: auto;
   scroll-behavior: smooth;
-  gap: 20px;
+  gap: 15px; /* Reduced gap for smaller screens */
   padding-bottom: 5px;
   scrollbar-width: none;
   -ms-overflow-style: none;
   scroll-snap-type: x mandatory;
+  user-select: none;
+  -webkit-user-select: none;
+  width: 100%;
 }
 
 .blog-carousel::-webkit-scrollbar {
@@ -79,34 +84,34 @@ h1 {
 .blog-card {
   scroll-snap-align: start;
   background: white;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
   border-radius: 15px;
   cursor: pointer;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  height: 350px;
+  height: 300px; /* Reduced height for flexibility */
   transition: transform 0.3s ease;
-  width: calc((1200px - 40px) / 4); /* Mỗi card chiếm 1/4 chiều rộng */
-  min-width: 0;
+  width: 250px; /* Base width for cards */
+  min-width: 200px; /* Minimum width for smaller screens */
 }
 
 .blog-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 16px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
 }
 
 .blog-thumb {
   width: 100%;
-  height: 190px;
+  height: 160px; /* Adjusted height for responsiveness */
   object-fit: cover;
   border-bottom: 2px solid #eee;
   flex-shrink: 0;
 }
 
 .blog-title {
-  margin: 1rem;
-  font-size: 1.3rem;
+  margin: 0.8rem;
+  font-size: 1.1rem; /* Smaller font size */
   font-weight: 600;
   color: #1a1a1a;
   flex-grow: 1;
@@ -118,14 +123,14 @@ h1 {
 }
 
 .blog-detail {
-  max-width: 850px;
-  margin: 3rem auto;
-  padding: 2rem 2.5rem;
+  max-width: 90%;
+  margin: 2rem auto;
+  padding: 1.5rem;
   background: white;
   border-radius: 15px;
-  box-shadow: 0 14px 35px rgba(0,0,0,0.12);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.12);
   color: #222;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
   display: flex;
   flex-direction: column;
@@ -135,47 +140,156 @@ h1 {
 
 .back-btn {
   align-self: flex-start;
-  background: none;
+  padding: 6px 12px;
   border: none;
-  font-size: 1.25rem;
-  color: #007bff;
-  font-weight: 600;
+  background: linear-gradient(135deg, #0810f8, #bcb9dd);
+  color: white;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
-  margin-bottom: 1.5rem;
-  transition: color 0.25s ease;
+  transition: all 0.2s ease;
+  margin-bottom: 1rem;
 }
 
 .back-btn:hover {
-  color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(248, 196, 180, 0.3);
+  filter: brightness(1.05);
 }
 
 .detail-title {
-  font-size: 2.5rem;
+  font-size: calc(1.5rem + 1vw); /* Responsive font size */
   font-weight: 700;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   color: #111;
 }
 
 .detail-image {
   width: 100%;
-  max-height: 450px;
+  max-height: 400px; /* Slightly reduced max-height */
   object-fit: contain;
   border-radius: 15px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-  margin-bottom: 2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
 }
 
 .detail-content {
-  font-size: 1.15rem;
+  font-size: 1rem; /* Slightly smaller font */
   color: #444;
-  max-width: 800px;
+  max-width: 100%;
   text-align: left;
   white-space: pre-wrap;
 }
 
 .loading {
   text-align: center;
-  font-size: 1.5rem;
-  margin-top: 3rem;
+  font-size: 1.2rem;
+  margin-top: 2rem;
   color: #666;
+}
+
+/* Media Queries for Responsive Design */
+@media (max-width: 768px) {
+  .blog-list-container {
+    margin: 1rem;
+    padding: 0 0.5rem;
+  }
+
+  h1 {
+    font-size: calc(1.2rem + 1vw);
+  }
+
+  .carousel-wrapper {
+    padding: 0;
+  }
+
+  .scroll-btn {
+    font-size: 1.2rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .blog-card {
+    width: 200px;
+    min-width: 180px;
+    height: 280px;
+  }
+
+  .blog-thumb {
+    height: 140px;
+  }
+
+  .blog-title {
+    font-size: 1rem;
+    margin: 0.6rem;
+  }
+
+  .blog-detail {
+    max-width: 95%;
+    padding: 1rem;
+  }
+
+  .detail-title {
+    font-size: calc(1.2rem + 1vw);
+  }
+
+  .detail-image {
+    max-height: 300px;
+  }
+
+  .detail-content {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .blog-list-container {
+    margin: 0.5rem;
+  }
+
+  h1 {
+    font-size: calc(1rem + 1vw);
+  }
+
+  .scroll-btn {
+    font-size: 1rem;
+    padding: 0.2rem;
+  }
+
+  .blog-card {
+    width: 160px;
+    min-width: 140px;
+    height: 240px;
+  }
+
+  .blog-thumb {
+    height: 120px;
+  }
+
+  .blog-title {
+    font-size: 0.9rem;
+    margin: 0.5rem;
+  }
+
+  .blog-detail {
+    max-width: 98%;
+    padding: 0.8rem;
+  }
+
+  .detail-title {
+    font-size: calc(1rem + 1vw);
+  }
+
+  .detail-image {
+    max-height: 250px;
+  }
+
+  .detail-content {
+    font-size: 0.85rem;
+  }
+
+  .back-btn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
 }

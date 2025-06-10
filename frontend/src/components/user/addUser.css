@@ -1,0 +1,77 @@
+/* addUser.css */
+.adduser-section {
+    background-color: #f0f4f8; /* Màu nền nhẹ cho toàn bộ section */
+    padding: 20px; /* Khoảng cách bên trong */
+}
+
+.adduser-container {
+    max-width: 600px; /* Giới hạn chiều rộng của form */
+    margin: 0 auto; /* Căn giữa form */
+    padding: 20px; /* Thêm khoảng cách bên trong */
+    border: 1px solid #ccc; /* Đường viền nhẹ */
+    border-radius: 8px; /* Bo góc */
+    background-color: #ffffff; /* Màu nền trắng cho form */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ */
+}
+
+h2 {
+    text-align: center; /* Căn giữa tiêu đề */
+    color: #ff6600; /* Màu tiêu đề */
+    margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+}
+
+.form-group {
+    margin-bottom: 15px; /* Khoảng cách giữa các trường */
+}
+
+label {
+    display: block; /* Hiển thị label như một khối */
+    margin-bottom: 5px; /* Khoảng cách dưới label */
+    font-weight: bold; /* Làm đậm chữ */
+    color: #333; /* Màu chữ cho label */
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+select {
+    width: 100%; /* Chiều rộng 100% */
+    padding: 10px; /* Khoảng cách bên trong */
+    border: 1px solid #ccc; /* Đường viền nhẹ */
+    border-radius: 4px; /* Bo góc */
+    font-size: 16px; /* Kích thước chữ */
+    transition: border-color 0.3s; /* Hiệu ứng chuyển màu viền */
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="tel"]:focus,
+select:focus {
+    border-color: #ff6600; /* Đổi màu viền khi focus */
+    outline: none; /* Bỏ outline mặc định */
+}
+
+.add-user-button {
+    width: 100%; /* Chiều rộng 100% */
+    padding: 10px; /* Khoảng cách bên trong */
+    background-color: #ff6600; /* Màu nền nút */
+    color: white; /* Màu chữ */
+    border: none; /* Bỏ đường viền */
+    border-radius: 4px; /* Bo góc */
+    font-size: 16px; /* Kích thước chữ */
+    cursor: pointer; /* Con trỏ chuột khi hover */
+    transition: background-color 0.3s; /* Hiệu ứng chuyển màu nền */
+    background-color: #ff6600;
+    color: white;
+}
+
+button:hover {
+    background-color: #e65c00; /* Màu nền khi hover */
+}
+
+.submit-btn:disabled {
+    background-color: #ccc; /* Màu nền khi nút bị vô hiệu hóa */
+    cursor: not-allowed; /* Con trỏ chuột khi nút bị vô hiệu hóa */
+}
